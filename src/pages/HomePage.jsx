@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
+import PasswordInput from '../components/PasswordInput'
 import { useAuth } from '../context/AuthContext'
 
 export default function HomePage() {
-  const { user, loading, signIn, signUp } = useAuth()
+  const { user, loading, passwordRecovery, signIn, signUp, resetPassword } = useAuth()
   const [mode, setMode] = useState('signin')
+  const [fullName, setFullName] = useState('')
+  const [company, setCompany] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -20,6 +23,7 @@ export default function HomePage() {
     )
   }
 
+  if (passwordRecovery) return <Navigate to="/auth/reset" replace />
   if (user) return <Navigate to="/app" replace />
 
   async function handleSubmit(e) {
@@ -28,10 +32,20 @@ export default function HomePage() {
     setError(null)
     setInfo(null)
     try {
-      if (mode === 'signin') {
+      if (mode === 'forgot') {
+        await resetPassword(email)
+        setInfo('If an account exists for that email, a reset link has been sent.')
+      } else if (mode === 'signin') {
         await signIn(email, password)
       } else {
-        const data = await signUp(email, password)
+        if (!fullName.trim()) {
+          setError('Please enter your full name.')
+          return
+        }
+        const data = await signUp(email, password, {
+          fullName: fullName.trim(),
+          company: company.trim(),
+        })
         if (!data.session) {
           setInfo('Account created. Check your email to confirm, then sign in.')
           setMode('signin')
@@ -44,55 +58,98 @@ export default function HomePage() {
     }
   }
 
+  const headings = {
+    signin: {
+      title: 'Sign in',
+      subtitle: 'Continue to your shared notes.',
+    },
+    signup: {
+      title: 'Create account',
+      subtitle: 'Add your details, then start writing.',
+    },
+    forgot: {
+      title: 'Reset password',
+      subtitle: 'We’ll email a link to set a new one.',
+    },
+  }
+
   return (
     <div className="home">
       <div className="home-panel home-copy">
-        <span className="brand">Notes Taker</span>
-        <h1 className="brand-hero">Notes that stay in sync with your team.</h1>
-        <p className="home-lead">
-          Write, invite by email, and collaborate. Everyone mentioned stays notified when notes change.
-        </p>
+        <div className="home-copy-inner">
+          <h1 className="brand-hero">Notes Taker</h1>
+          <p className="home-lead">
+            Invite by email, edit together, and see every change.
+          </p>
+        </div>
       </div>
 
       <div className="home-panel home-auth">
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="auth-form-head">
-            <h2>{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h2>
-            <p className="muted small">
-              {mode === 'signin'
-                ? 'Sign in with your email and password.'
-                : 'Use a work email so teammates can find you.'}
-            </p>
+            <h2>{headings[mode].title}</h2>
+            <p className="muted small">{headings[mode].subtitle}</p>
           </div>
 
-          <div className="auth-tabs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mode === 'signin'}
-              className={mode === 'signin' ? 'auth-tab active' : 'auth-tab'}
-              onClick={() => {
-                setMode('signin')
-                setError(null)
-                setInfo(null)
-              }}
-            >
-              Sign in
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mode === 'signup'}
-              className={mode === 'signup' ? 'auth-tab active' : 'auth-tab'}
-              onClick={() => {
-                setMode('signup')
-                setError(null)
-                setInfo(null)
-              }}
-            >
-              Sign up
-            </button>
-          </div>
+          {mode !== 'forgot' && (
+            <div className="auth-tabs" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === 'signin'}
+                className={mode === 'signin' ? 'auth-tab active' : 'auth-tab'}
+                onClick={() => {
+                  setMode('signin')
+                  setError(null)
+                  setInfo(null)
+                }}
+              >
+                Sign in
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === 'signup'}
+                className={mode === 'signup' ? 'auth-tab active' : 'auth-tab'}
+                onClick={() => {
+                  setMode('signup')
+                  setError(null)
+                  setInfo(null)
+                }}
+              >
+                Sign up
+              </button>
+            </div>
+          )}
+
+          {mode === 'signup' && (
+            <>
+              <label className="auth-field">
+                <span>Full name</span>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Ada Lovelace"
+                  autoComplete="name"
+                  required
+                />
+              </label>
+
+              <label className="auth-field">
+                <span>
+                  Company <span className="field-optional">(optional)</span>
+                </span>
+                <input
+                  type="text"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  placeholder="Acme Inc."
+                  autoComplete="organization"
+                />
+              </label>
+            </>
+          )}
 
           <label className="auth-field">
             <span>Email</span>
@@ -106,18 +163,32 @@ export default function HomePage() {
             />
           </label>
 
-          <label className="auth-field">
-            <span>Password</span>
-            <input
-              type="password"
+          {mode !== 'forgot' && (
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={mode === 'signup' ? 'At least 6 characters' : 'Your password'}
               autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-              minLength={6}
               required
             />
-          </label>
+          )}
+
+          {mode === 'signin' && (
+            <div className="auth-actions">
+              <button
+                type="button"
+                className="link-btn"
+                onClick={() => {
+                  setMode('forgot')
+                  setError(null)
+                  setInfo(null)
+                  setPassword('')
+                }}
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
 
           {error && (
             <p className="alert alert-error" role="alert">
@@ -131,8 +202,28 @@ export default function HomePage() {
           )}
 
           <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
-            {busy ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}
+            {busy
+              ? 'Please wait…'
+              : mode === 'signin'
+                ? 'Sign in'
+                : mode === 'signup'
+                  ? 'Create account'
+                  : 'Send reset link'}
           </button>
+
+          {mode === 'forgot' && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-block"
+              onClick={() => {
+                setMode('signin')
+                setError(null)
+                setInfo(null)
+              }}
+            >
+              Back to sign in
+            </button>
+          )}
         </form>
       </div>
     </div>

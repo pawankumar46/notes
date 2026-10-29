@@ -3,7 +3,11 @@ import { useAuth } from '../context/AuthContext'
 
 export default function AppHeader({ leading, actions }) {
   const { user, signOut } = useAuth()
-  const label = user?.email || 'Account'
+  const label =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email ||
+    'Account'
 
   return (
     <header className="app-bar">

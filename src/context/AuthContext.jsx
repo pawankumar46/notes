@@ -7,6 +7,7 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [passwordRecovery, setPasswordRecovery] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -27,10 +28,16 @@ export function AuthProvider({ children }) {
 
     boot()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, next) => {
       setSession(next)
       setLoading(false)
-      if (next?.user) {
+      if (event === 'PASSWORD_RECOVERY') {
+        setPasswordRecovery(true)
+      }
+      if (event === 'SIGNED_OUT') {
+        setPasswordRecovery(false)
+      }
+      if (next?.user && event !== 'PASSWORD_RECOVERY') {
         ensureProfile(next.user).catch(() => {})
       }
     })
@@ -46,12 +53,38 @@ export function AuthProvider({ children }) {
       session,
       user: session?.user ?? null,
       loading,
-      async signUp(email, password) {
+      passwordRecovery,
+      clearPasswordRecovery() {
+        setPasswordRecovery(false)
+      },
+      async signUp(email, password, { fullName, company } = {}) {
+        const trimmedName = (fullName || '').trim()
+        const trimmedCompany = (company || '').trim()
         const { data, error } = await supabase.auth.signUp({
           email: email.trim().toLowerCase(),
           password,
+          options: {
+            data: {
+              full_name: trimmedName,
+              name: trimmedName,
+              company: trimmedCompany || null,
+            },
+          },
         })
         if (error) throw error
+
+        if (data.user) {
+          await ensureProfile({
+            ...data.user,
+            user_metadata: {
+              ...data.user.user_metadata,
+              full_name: trimmedName,
+              name: trimmedName,
+              company: trimmedCompany || null,
+            },
+          })
+        }
+
         return data
       },
       async signIn(email, password) {
@@ -62,12 +95,27 @@ export function AuthProvider({ children }) {
         if (error) throw error
         return data
       },
+      async resetPassword(email) {
+        const { data, error } = await supabase.auth.resetPasswordForEmail(
+          email.trim().toLowerCase(),
+          { redirectTo: `${window.location.origin}/auth/reset` },
+        )
+        if (error) throw error
+        return data
+      },
+      async updatePassword(password) {
+        const { data, error } = await supabase.auth.updateUser({ password })
+        if (error) throw error
+        setPasswordRecovery(false)
+        return data
+      },
       async signOut() {
         const { error } = await supabase.auth.signOut()
         if (error) throw error
+        setPasswordRecovery(false)
       },
     }),
-    [session, loading],
+    [session, loading, passwordRecovery],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

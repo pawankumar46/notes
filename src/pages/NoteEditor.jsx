@@ -1,35 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
+import RichEditor from '../components/RichEditor'
 import { useAuth } from '../context/AuthContext'
+import { plainTextFromHtml } from '../lib/editor'
 import { supabase } from '../lib/supabase'
 import {
   extractMentionEmails,
   getNote,
   inviteCollaborator,
   listCollaborators,
-  listNoteActivity,
   logNoteActivity,
   notifyEmail,
   removeCollaborator,
   summarizeNoteChange,
   updateNote,
 } from '../lib/notes'
-
-function formatActivityTime(value) {
-  const date = new Date(value)
-  const now = new Date()
-  const sameDay = date.toDateString() === now.toDateString()
-  if (sameDay) {
-    return `Today, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-  }
-  return date.toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
 
 export default function NoteEditor() {
   const { id } = useParams()
@@ -39,6 +25,7 @@ export default function NoteEditor() {
   const [note, setNote] = useState(null)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [lineAuthors, setLineAuthors] = useState([])
   const [collaborators, setCollaborators] = useState([])
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviting, setInviting] = useState(false)
@@ -46,10 +33,9 @@ export default function NoteEditor() {
   const [error, setError] = useState(null)
   const [shareMsg, setShareMsg] = useState(null)
   const [shareOpen, setShareOpen] = useState(false)
-  const [activity, setActivity] = useState([])
 
   const saveTimer = useRef(null)
-  const lastSaved = useRef({ title: '', content: '' })
+  const lastSaved = useRef({ title: '', content: '', lineAuthors: [] })
   const applyingRemote = useRef(false)
   const notifiedMentions = useRef(new Set())
   const lastChangeNotify = useRef(0)
@@ -64,17 +50,17 @@ export default function NoteEditor() {
   const load = useCallback(async () => {
     setError(null)
     try {
-      const [n, c, a] = await Promise.all([
-        getNote(id),
-        listCollaborators(id),
-        listNoteActivity(id),
-      ])
+      const [n, c] = await Promise.all([getNote(id), listCollaborators(id)])
       setNote(n)
       setTitle(n.title || '')
       setContent(n.content || '')
-      lastSaved.current = { title: n.title || '', content: n.content || '' }
+      setLineAuthors(Array.isArray(n.line_authors) ? n.line_authors : [])
+      lastSaved.current = {
+        title: n.title || '',
+        content: n.content || '',
+        lineAuthors: Array.isArray(n.line_authors) ? n.line_authors : [],
+      }
       setCollaborators(c)
-      setActivity(a)
     } catch (err) {
       setError(err.message)
     }
@@ -97,28 +83,16 @@ export default function NoteEditor() {
           setNote((prev) => ({ ...prev, ...row }))
           setTitle(row.title || '')
           setContent(row.content || '')
-          lastSaved.current = { title: row.title || '', content: row.content || '' }
+          setLineAuthors(Array.isArray(row.line_authors) ? row.line_authors : [])
+          lastSaved.current = {
+            title: row.title || '',
+            content: row.content || '',
+            lineAuthors: Array.isArray(row.line_authors) ? row.line_authors : [],
+          }
           setStatus('synced')
           setTimeout(() => {
             applyingRemote.current = false
           }, 50)
-        },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'note_activity',
-          filter: `note_id=eq.${id}`,
-        },
-        (payload) => {
-          const row = payload.new
-          if (!row) return
-          setActivity((prev) => {
-            if (prev.some((item) => item.id === row.id)) return prev
-            return [row, ...prev].slice(0, 40)
-          })
         },
       )
       .subscribe()
@@ -128,7 +102,7 @@ export default function NoteEditor() {
     }
   }, [id, user.id])
 
-  async function persist(nextTitle, nextContent, { notifyChange = true } = {}) {
+  async function persist(nextTitle, nextContent, nextAuthors, { notifyChange = true } = {}) {
     if (!note) return
     setStatus('saving')
     setError(null)
@@ -141,15 +115,20 @@ export default function NoteEditor() {
         title: nextTitle,
         content: nextContent,
         updatedBy: user.id,
+        lineAuthors: nextAuthors,
       })
-      lastSaved.current = { title: nextTitle, content: nextContent }
+      lastSaved.current = {
+        title: nextTitle,
+        content: nextContent,
+        lineAuthors: nextAuthors,
+      }
       setNote((prev) => ({ ...prev, ...updated }))
       setStatus('saved')
 
       if (change && Date.now() - lastActivityLog.current > 20_000) {
         lastActivityLog.current = Date.now()
         try {
-          const entry = await logNoteActivity({
+          await logNoteActivity({
             noteId: id,
             actorId: user.id,
             actorEmail: user.email,
@@ -157,10 +136,6 @@ export default function NoteEditor() {
             summary: change.summary,
             linesAdded: change.linesAdded,
             linesRemoved: change.linesRemoved,
-          })
-          setActivity((prev) => {
-            if (prev.some((item) => item.id === entry.id)) return prev
-            return [entry, ...prev].slice(0, 40)
           })
         } catch {
           // activity log is best-effort
@@ -181,7 +156,8 @@ export default function NoteEditor() {
         }
       }
 
-      const mentions = extractMentionEmails(nextContent)
+      const plain = plainTextFromHtml(nextContent)
+      const mentions = extractMentionEmails(plain)
       const existing = new Set(collaborators.map((c) => c.email.toLowerCase()))
       const fresh = mentions.filter(
         (email) =>
@@ -215,7 +191,7 @@ export default function NoteEditor() {
     }
   }
 
-  function scheduleSave(nextTitle, nextContent) {
+  function scheduleSave(nextTitle, nextContent, nextAuthors) {
     if (applyingRemote.current) return
     if (
       nextTitle === lastSaved.current.title &&
@@ -226,7 +202,7 @@ export default function NoteEditor() {
     setStatus('editing')
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {
-      persist(nextTitle, nextContent)
+      persist(nextTitle, nextContent, nextAuthors)
     }, 900)
   }
 
@@ -279,7 +255,8 @@ export default function NoteEditor() {
   }
 
   const isOwner = note?.owner_id === user.id
-  const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0
+  const plain = plainTextFromHtml(content)
+  const wordCount = plain.trim() ? plain.trim().split(/\s+/).length : 0
 
   const statusLabel = {
     idle: 'Ready',
@@ -316,7 +293,7 @@ export default function NoteEditor() {
         leading={
           <nav className="editor-nav">
             <Link to="/app" className="back-link">
-              ← Notes
+              All notes
             </Link>
             <span className="save-pill" data-status={status}>
               {statusLabel}
@@ -342,22 +319,24 @@ export default function NoteEditor() {
             onChange={(e) => {
               const v = e.target.value
               setTitle(v)
-              scheduleSave(v, content)
+              scheduleSave(v, content, lineAuthors)
             }}
             placeholder="Untitled note"
             aria-label="Note title"
           />
-          <textarea
-            className="content-input"
+
+          <RichEditor
             value={content}
-            onChange={(e) => {
-              const v = e.target.value
-              setContent(v)
-              scheduleSave(title, v)
-            }}
+            lineAuthors={lineAuthors}
+            currentUser={user}
             placeholder="Start writing… Mention people with @email@domain.com"
-            aria-label="Note content"
+            onChange={({ html, lineAuthors: nextAuthors }) => {
+              setContent(html)
+              setLineAuthors(nextAuthors)
+              scheduleSave(title, html, nextAuthors)
+            }}
           />
+
           <div className="editor-footer">
             <span className="muted small">
               {wordCount} word{wordCount === 1 ? '' : 's'}
@@ -374,7 +353,7 @@ export default function NoteEditor() {
           <div className="share-pane-head">
             <h2>Collaborate</h2>
             <p className="muted small">
-              Invite by email. They can edit after signing up with that address.
+              Invite by email. Edits show inline next to each line, like a soft name tag.
             </p>
           </div>
 
@@ -439,33 +418,6 @@ export default function NoteEditor() {
                 </li>
               ))}
             </ul>
-          </div>
-
-          <div className="collab-section">
-            <h3>Activity</h3>
-            {activity.length === 0 ? (
-              <p className="muted small">No edits logged yet.</p>
-            ) : (
-              <ul className="activity-list">
-                {activity.map((item) => (
-                  <li key={item.id} className="activity-item">
-                    <div className="activity-main">
-                      <strong>{item.actor_email || 'Someone'}</strong>
-                      <span> {item.summary}</span>
-                    </div>
-                    <div className="activity-meta">
-                      {item.lines_added > 0 && (
-                        <span className="lines-added">+{item.lines_added}</span>
-                      )}
-                      {item.lines_removed > 0 && (
-                        <span className="lines-removed">-{item.lines_removed}</span>
-                      )}
-                      <span className="meta">{formatActivityTime(item.created_at)}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
         </aside>
       </div>

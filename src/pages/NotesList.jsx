@@ -89,7 +89,7 @@ export default function NotesList() {
             <p className="muted">
               {loading
                 ? 'Loading your workspace…'
-                : `${notes.length} note${notes.length === 1 ? '' : 's'} · owned and shared`}
+                : `${notes.length} note${notes.length === 1 ? '' : 's'}, owned and shared`}
             </p>
           </div>
           <button
@@ -149,7 +149,11 @@ export default function NotesList() {
           <ul className="note-list">
             {filtered.map((note) => {
               const owned = note.owner_id === user.id
-              const preview = (note.content || '').replace(/\s+/g, ' ').trim().slice(0, 140)
+              const preview = (note.content || '')
+                .replace(/<[^>]+>/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, 140)
               return (
                 <li key={note.id}>
                   <Link to={`/app/notes/${note.id}`} className="note-row">
@@ -157,7 +161,7 @@ export default function NotesList() {
                       <div className="note-row-top">
                         <h2>{note.title || 'Untitled'}</h2>
                         <span className={owned ? 'tag tag-owner' : 'tag tag-shared'}>
-                          {owned ? 'Owned' : 'Shared'}
+                          {owned ? 'Yours' : 'Shared'}
                         </span>
                       </div>
                       <p className="note-preview">{preview || 'Empty note'}</p>

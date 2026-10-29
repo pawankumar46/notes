@@ -20,7 +20,7 @@ export function extractEmails(text) {
 export async function listNotes() {
   const { data, error } = await supabase
     .from('notes')
-    .select('id, title, content, owner_id, updated_at, created_at, updated_by')
+    .select('id, title, content, owner_id, updated_at, created_at, updated_by, line_authors')
     .order('updated_at', { ascending: false })
   if (error) throw error
   return data || []
@@ -29,7 +29,7 @@ export async function listNotes() {
 export async function getNote(id) {
   const { data, error } = await supabase
     .from('notes')
-    .select('id, title, content, owner_id, updated_at, created_at, updated_by')
+    .select('id, title, content, owner_id, updated_at, created_at, updated_by, line_authors')
     .eq('id', id)
     .single()
   if (error) throw error
@@ -52,8 +52,17 @@ export async function createNote(ownerId) {
 }
 
 export function summarizeNoteChange(prevTitle, prevContent, nextTitle, nextContent) {
-  const prevLines = (prevContent || '').split('\n')
-  const nextLines = (nextContent || '').split('\n')
+  const toPlain = (value) => {
+    if (!value) return ''
+    if (typeof document !== 'undefined' && /<[a-z][\s\S]*>/i.test(value)) {
+      const div = document.createElement('div')
+      div.innerHTML = value
+      return (div.innerText || '').replace(/\u00a0/g, ' ')
+    }
+    return value
+  }
+  const prevLines = toPlain(prevContent).split('\n')
+  const nextLines = toPlain(nextContent).split('\n')
   const linesAdded = Math.max(0, nextLines.length - prevLines.length)
   const linesRemoved = Math.max(0, prevLines.length - nextLines.length)
   const titleChanged = (prevTitle || '') !== (nextTitle || '')
@@ -83,16 +92,19 @@ export function summarizeNoteChange(prevTitle, prevContent, nextTitle, nextConte
   }
 }
 
-export async function updateNote(id, { title, content, updatedBy }) {
+export async function updateNote(id, { title, content, updatedBy, lineAuthors }) {
+  const payload = {
+    title,
+    content,
+    updated_by: updatedBy,
+  }
+  if (lineAuthors) payload.line_authors = lineAuthors
+
   const { data, error } = await supabase
     .from('notes')
-    .update({
-      title,
-      content,
-      updated_by: updatedBy,
-    })
+    .update(payload)
     .eq('id', id)
-    .select('id, title, content, owner_id, updated_at, updated_by')
+    .select('id, title, content, owner_id, updated_at, updated_by, line_authors')
     .single()
   if (error) throw error
   return data
@@ -210,7 +222,7 @@ export async function notifyEmail({ type, noteId, recipientEmails, noteTitle, in
 export async function getProfile(userId) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, email, display_name, avatar_url')
+    .select('id, email, display_name, avatar_url, company')
     .eq('id', userId)
     .maybeSingle()
   if (error) throw error
@@ -230,10 +242,11 @@ export async function ensureProfile(user) {
           user.user_metadata?.name ||
           user.email.split('@')[0],
         avatar_url: user.user_metadata?.avatar_url || null,
+        company: user.user_metadata?.company || null,
       },
       { onConflict: 'id' },
     )
-    .select('id, email, display_name, avatar_url')
+    .select('id, email, display_name, avatar_url, company')
     .single()
   if (error) throw error
 

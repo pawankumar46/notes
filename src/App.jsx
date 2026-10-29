@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext'
 import HomePage from './pages/HomePage'
 import NoteEditor from './pages/NoteEditor'
 import NotesList from './pages/NotesList'
+import ResetPassword from './pages/ResetPassword'
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/auth/reset" element={<ResetPassword />} />
           <Route
             path="/app"
             element={
