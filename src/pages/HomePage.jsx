@@ -60,31 +60,55 @@ export default function HomePage() {
 
   const headings = {
     signin: {
-      title: 'Sign in',
-      subtitle: 'Continue to your shared notes.',
+      title: 'Welcome back',
+      subtitle: 'Sign in to open your shared notes.',
     },
     signup: {
-      title: 'Create account',
-      subtitle: 'Add your details, then start writing.',
+      title: 'Join Notes Taker',
+      subtitle: 'A few details, then you can write and invite.',
     },
     forgot: {
       title: 'Reset password',
-      subtitle: 'We’ll email a link to set a new one.',
+      subtitle: 'We’ll send a link to your email.',
     },
   }
 
   return (
     <div className="home">
-      <div className="home-panel home-copy">
-        <div className="home-copy-inner">
+      <section className="home-stage">
+        <div className="home-stage-glow" aria-hidden />
+        <div className="home-stage-inner">
+          <p className="home-kicker">Collaborative notes</p>
           <h1 className="brand-hero">Notes Taker</h1>
           <p className="home-lead">
-            Invite by email, edit together, and see every change.
+            Write together, invite by email, and see who changed each line.
           </p>
-        </div>
-      </div>
 
-      <div className="home-panel home-auth">
+          <div className="home-preview" aria-hidden="true">
+            <div className="home-preview-bar">
+              <span>Sprint planning</span>
+              <span className="home-preview-live">Live</span>
+            </div>
+            <div className="home-preview-body">
+              <p>
+                Ship notes with share links
+                <span className="home-blame">maya  2m ago</span>
+              </p>
+              <p>
+                <span className="home-mark">Highlight blockers</span> before standup
+                <span className="home-blame">jordan  14m ago</span>
+              </p>
+              <p className="home-preview-check">
+                <span className="home-check" />
+                Invite design + eng by email
+                <span className="home-blame">you  just now</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="home-auth">
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="auth-form-head">
             <h2>{headings[mode].title}</h2>
@@ -225,7 +249,7 @@ export default function HomePage() {
             </button>
           )}
         </form>
-      </div>
+      </section>
     </div>
   )
 }

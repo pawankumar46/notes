@@ -146,37 +146,36 @@ export default function NotesList() {
             )}
           </div>
         ) : (
-          <ul className="note-list">
+          <ul className="note-grid">
             {filtered.map((note) => {
               const owned = note.owner_id === user.id
               const preview = (note.content || '')
+                .replace(/&nbsp;/gi, ' ')
                 .replace(/<[^>]+>/g, ' ')
                 .replace(/\s+/g, ' ')
                 .trim()
-                .slice(0, 140)
+                .slice(0, 120)
               return (
                 <li key={note.id}>
-                  <Link to={`/app/notes/${note.id}`} className="note-row">
-                    <div className="note-row-body">
-                      <div className="note-row-top">
-                        <h2>{note.title || 'Untitled'}</h2>
-                        <span className={owned ? 'tag tag-owner' : 'tag tag-shared'}>
-                          {owned ? 'Yours' : 'Shared'}
-                        </span>
-                      </div>
-                      <p className="note-preview">{preview || 'Empty note'}</p>
-                      <p className="meta">Updated {formatUpdated(note.updated_at)}</p>
+                  <Link to={`/app/notes/${note.id}`} className="note-card">
+                    <div className="note-card-top">
+                      <span className={owned ? 'tag tag-owner' : 'tag tag-shared'}>
+                        {owned ? 'Yours' : 'Shared'}
+                      </span>
+                      {owned && (
+                        <button
+                          type="button"
+                          className="btn btn-ghost danger btn-sm"
+                          onClick={(e) => handleDelete(note.id, e)}
+                          aria-label={`Delete ${note.title || 'note'}`}
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
-                    {owned && (
-                      <button
-                        type="button"
-                        className="btn btn-ghost danger"
-                        onClick={(e) => handleDelete(note.id, e)}
-                        aria-label={`Delete ${note.title || 'note'}`}
-                      >
-                        Delete
-                      </button>
-                    )}
+                    <h2>{note.title || 'Untitled'}</h2>
+                    <p className="note-preview">{preview || 'Empty note'}</p>
+                    <p className="meta">Updated {formatUpdated(note.updated_at)}</p>
                   </Link>
                 </li>
               )
