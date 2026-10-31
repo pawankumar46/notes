@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
 import { useAuth } from '../context/AuthContext'
+import { useDialog } from '../context/DialogContext'
 import { createNote, deleteNote, listNotes } from '../lib/notes'
 
 function formatUpdated(value) {
@@ -19,10 +20,11 @@ function formatUpdated(value) {
   })
 }
 
-export default function NotesList() {
+export default function SpacesList() {
   const { user } = useAuth()
+  const { confirm } = useDialog()
   const navigate = useNavigate()
-  const [notes, setNotes] = useState([])
+  const [spaces, setSpaces] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [creating, setCreating] = useState(false)
@@ -32,7 +34,7 @@ export default function NotesList() {
     let active = true
     listNotes()
       .then((data) => {
-        if (active) setNotes(data)
+        if (active) setSpaces(data)
       })
       .catch((err) => {
         if (active) setError(err.message)
@@ -47,19 +49,19 @@ export default function NotesList() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return notes
-    return notes.filter((note) => {
-      const hay = `${note.title || ''} ${note.content || ''}`.toLowerCase()
+    if (!q) return spaces
+    return spaces.filter((space) => {
+      const hay = `${space.title || ''} ${space.content || ''}`.toLowerCase()
       return hay.includes(q)
     })
-  }, [notes, query])
+  }, [spaces, query])
 
   async function handleCreate() {
     setCreating(true)
     setError(null)
     try {
-      const note = await createNote(user.id)
-      navigate(`/app/notes/${note.id}`)
+      const space = await createNote(user.id)
+      navigate(`/app/spaces/${space.id}`)
     } catch (err) {
       setError(err.message)
       setCreating(false)
@@ -69,10 +71,17 @@ export default function NotesList() {
   async function handleDelete(id, e) {
     e.preventDefault()
     e.stopPropagation()
-    if (!window.confirm('Delete this note? This cannot be undone.')) return
+    const ok = await confirm({
+      title: 'Delete space?',
+      message: 'This space and its files will be removed. This cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Keep',
+      danger: true,
+    })
+    if (!ok) return
     try {
       await deleteNote(id)
-      setNotes((prev) => prev.filter((n) => n.id !== id))
+      setSpaces((prev) => prev.filter((n) => n.id !== id))
     } catch (err) {
       setError(err.message)
     }
@@ -85,11 +94,11 @@ export default function NotesList() {
       <main className="app-main">
         <div className="list-head">
           <div>
-            <h1>Notes</h1>
+            <h1>Spaces</h1>
             <p className="muted">
               {loading
                 ? 'Loading your workspace…'
-                : `${notes.length} note${notes.length === 1 ? '' : 's'}, owned and shared`}
+                : `${spaces.length} space${spaces.length === 1 ? '' : 's'}, writing and files`}
             </p>
           </div>
           <button
@@ -98,13 +107,13 @@ export default function NotesList() {
             onClick={handleCreate}
             disabled={creating}
           >
-            {creating ? 'Creating…' : 'New note'}
+            {creating ? 'Creating…' : 'New space'}
           </button>
         </div>
 
         <div className="toolbar">
           <label className="search-field">
-            <span className="sr-only">Search notes</span>
+            <span className="sr-only">Search spaces</span>
             <input
               type="search"
               value={query}
@@ -125,14 +134,15 @@ export default function NotesList() {
             <div className="skeleton-row" />
             <div className="skeleton-row" />
             <div className="skeleton-row" />
+            <div className="skeleton-row" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="empty">
-            <h2>{query ? 'No matches' : 'No notes yet'}</h2>
+            <h2>{query ? 'No matches' : 'No spaces yet'}</h2>
             <p className="muted">
               {query
                 ? 'Try a different search term.'
-                : 'Create a note, invite teammates by email, and edit together.'}
+                : 'Create a space for writing, photos, PDFs, and spreadsheets.'}
             </p>
             {!query && (
               <button
@@ -141,23 +151,23 @@ export default function NotesList() {
                 onClick={handleCreate}
                 disabled={creating}
               >
-                Create your first note
+                Create your first space
               </button>
             )}
           </div>
         ) : (
           <ul className="note-grid">
-            {filtered.map((note) => {
-              const owned = note.owner_id === user.id
-              const preview = (note.content || '')
+            {filtered.map((space) => {
+              const owned = space.owner_id === user.id
+              const preview = (space.content || '')
                 .replace(/&nbsp;/gi, ' ')
                 .replace(/<[^>]+>/g, ' ')
                 .replace(/\s+/g, ' ')
                 .trim()
                 .slice(0, 120)
               return (
-                <li key={note.id}>
-                  <Link to={`/app/notes/${note.id}`} className="note-card">
+                <li key={space.id}>
+                  <Link to={`/app/spaces/${space.id}`} className="note-card">
                     <div className="note-card-top">
                       <span className={owned ? 'tag tag-owner' : 'tag tag-shared'}>
                         {owned ? 'Yours' : 'Shared'}
@@ -166,16 +176,16 @@ export default function NotesList() {
                         <button
                           type="button"
                           className="btn btn-ghost danger btn-sm"
-                          onClick={(e) => handleDelete(note.id, e)}
-                          aria-label={`Delete ${note.title || 'note'}`}
+                          onClick={(e) => handleDelete(space.id, e)}
+                          aria-label={`Delete ${space.title || 'space'}`}
                         >
                           Delete
                         </button>
                       )}
                     </div>
-                    <h2>{note.title || 'Untitled'}</h2>
-                    <p className="note-preview">{preview || 'Empty note'}</p>
-                    <p className="meta">Updated {formatUpdated(note.updated_at)}</p>
+                    <h2>{space.title || 'Untitled space'}</h2>
+                    <p className="note-preview">{preview || 'Empty space'}</p>
+                    <p className="meta">Updated {formatUpdated(space.updated_at)}</p>
                   </Link>
                 </li>
               )

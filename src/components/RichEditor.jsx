@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import {
   HIGHLIGHT_COLORS,
   applyHighlight,
@@ -12,14 +12,17 @@ import {
   updateLineAuthors,
 } from '../lib/editor'
 
-export default function RichEditor({
-  value,
-  lineAuthors = [],
-  currentUser,
-  onChange,
-  placeholder = 'Start writing…',
-  disabled = false,
-}) {
+const RichEditor = forwardRef(function RichEditor(
+  {
+    value,
+    lineAuthors = [],
+    currentUser,
+    onChange,
+    placeholder = 'Start writing…',
+    disabled = false,
+  },
+  ref,
+) {
   const editorRef = useRef(null)
   const authorsRef = useRef(lineAuthors)
   const plainRef = useRef(plainTextFromHtml(ensureNoteHtml(value)))
@@ -75,6 +78,32 @@ export default function RichEditor({
       text: `${label}  ${formatBlameTime(meta.at)}`,
     })
   }
+
+  useImperativeHandle(ref, () => ({
+    insertHtml(html) {
+      const el = editorRef.current
+      if (!el || disabled) return
+      el.focus()
+      const selection = window.getSelection()
+      if (!selection || selection.rangeCount === 0 || !el.contains(selection.anchorNode)) {
+        const range = document.createRange()
+        range.selectNodeContents(el)
+        range.collapse(false)
+        selection?.removeAllRanges()
+        selection?.addRange(range)
+      }
+      document.execCommand('insertHTML', false, html)
+      emitChange()
+    },
+    removeFileEmbeds(fileId) {
+      const el = editorRef.current
+      if (!el || !fileId) return
+      el.querySelectorAll(`[data-file-id="${CSS.escape(fileId)}"]`).forEach((node) => {
+        node.remove()
+      })
+      emitChange()
+    },
+  }))
 
   function handleToolbar(action, color) {
     editorRef.current?.focus()
@@ -150,7 +179,7 @@ export default function RichEditor({
           contentEditable={!disabled}
           role="textbox"
           aria-multiline="true"
-          aria-label="Note content"
+          aria-label="Space content"
           data-placeholder={placeholder}
           suppressContentEditableWarning
           onInput={emitChange}
@@ -172,4 +201,6 @@ export default function RichEditor({
       </div>
     </div>
   )
-}
+})
+
+export default RichEditor

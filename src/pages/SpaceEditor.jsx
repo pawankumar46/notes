@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
+import FilePanel from '../components/FilePanel'
 import RichEditor from '../components/RichEditor'
 import { useAuth } from '../context/AuthContext'
 import { plainTextFromHtml } from '../lib/editor'
+import { listSpaceFiles, refreshContentEmbeds, stripEmbedsForFile } from '../lib/files'
 import { supabase } from '../lib/supabase'
 import {
   extractMentionEmails,
@@ -17,7 +19,7 @@ import {
   updateNote,
 } from '../lib/notes'
 
-export default function NoteEditor() {
+export default function SpaceEditor() {
   const { id } = useParams()
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -33,8 +35,10 @@ export default function NoteEditor() {
   const [error, setError] = useState(null)
   const [shareMsg, setShareMsg] = useState(null)
   const [shareOpen, setShareOpen] = useState(false)
+  const [files, setFiles] = useState([])
 
   const saveTimer = useRef(null)
+  const editorRef = useRef(null)
   const lastSaved = useRef({ title: '', content: '', lineAuthors: [] })
   const applyingRemote = useRef(false)
   const notifiedMentions = useRef(new Set())
@@ -50,17 +54,23 @@ export default function NoteEditor() {
   const load = useCallback(async () => {
     setError(null)
     try {
-      const [n, c] = await Promise.all([getNote(id), listCollaborators(id)])
+      const [n, c, f] = await Promise.all([
+        getNote(id),
+        listCollaborators(id),
+        listSpaceFiles(id),
+      ])
+      const hydrated = await refreshContentEmbeds(n.content || '')
       setNote(n)
       setTitle(n.title || '')
-      setContent(n.content || '')
+      setContent(hydrated)
       setLineAuthors(Array.isArray(n.line_authors) ? n.line_authors : [])
       lastSaved.current = {
         title: n.title || '',
-        content: n.content || '',
+        content: hydrated,
         lineAuthors: Array.isArray(n.line_authors) ? n.line_authors : [],
       }
       setCollaborators(c)
+      setFiles(f)
     } catch (err) {
       setError(err.message)
     }
@@ -76,17 +86,18 @@ export default function NoteEditor() {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'notes', filter: `id=eq.${id}` },
-        (payload) => {
+        async (payload) => {
           const row = payload.new
           if (!row || row.updated_by === user.id) return
           applyingRemote.current = true
+          const hydrated = await refreshContentEmbeds(row.content || '')
           setNote((prev) => ({ ...prev, ...row }))
           setTitle(row.title || '')
-          setContent(row.content || '')
+          setContent(hydrated)
           setLineAuthors(Array.isArray(row.line_authors) ? row.line_authors : [])
           lastSaved.current = {
             title: row.title || '',
-            content: row.content || '',
+            content: hydrated,
             lineAuthors: Array.isArray(row.line_authors) ? row.line_authors : [],
           }
           setStatus('synced')
@@ -293,7 +304,7 @@ export default function NoteEditor() {
         leading={
           <nav className="editor-nav">
             <Link to="/app" className="back-link">
-              All notes
+              All spaces
             </Link>
             <span className="save-pill" data-status={status}>
               {statusLabel}
@@ -321,15 +332,16 @@ export default function NoteEditor() {
               setTitle(v)
               scheduleSave(v, content, lineAuthors)
             }}
-            placeholder="Untitled note"
-            aria-label="Note title"
+            placeholder="Untitled space"
+            aria-label="Space title"
           />
 
           <RichEditor
+            ref={editorRef}
             value={content}
             lineAuthors={lineAuthors}
             currentUser={user}
-            placeholder="Start writing… Mention people with @email@domain.com"
+            placeholder="Write here… Mention people with @email@domain.com"
             onChange={({ html, lineAuthors: nextAuthors }) => {
               setContent(html)
               setLineAuthors(nextAuthors)
@@ -351,9 +363,9 @@ export default function NoteEditor() {
 
         <aside className="share-pane">
           <div className="share-pane-head">
-            <h2>Collaborate</h2>
+            <h2>Share</h2>
             <p className="muted small">
-              Invite by email. Edits show inline next to each line, like a soft name tag.
+              Invite by email. Writing, photos, PDFs, and sheets stay in one space.
             </p>
           </div>
 
@@ -382,6 +394,27 @@ export default function NoteEditor() {
               {shareMsg}
             </p>
           )}
+
+          <FilePanel
+            spaceId={id}
+            userId={user.id}
+            files={files}
+            setFiles={setFiles}
+            canUpload={Boolean(note)}
+            onInserted={(embedHtml) => {
+              editorRef.current?.insertHtml(embedHtml)
+            }}
+            onRemoved={(file) => {
+              if (editorRef.current) {
+                editorRef.current.removeFileEmbeds(file.id)
+                return
+              }
+              const nextContent = stripEmbedsForFile(content, file.id)
+              setContent(nextContent)
+              if (saveTimer.current) clearTimeout(saveTimer.current)
+              persist(title, nextContent, lineAuthors, { notifyChange: false })
+            }}
+          />
 
           <div className="collab-section">
             <h3>People with access</h3>

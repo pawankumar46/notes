@@ -72,19 +72,8 @@ export function AuthProvider({ children }) {
           },
         })
         if (error) throw error
-
-        if (data.user) {
-          await ensureProfile({
-            ...data.user,
-            user_metadata: {
-              ...data.user.user_metadata,
-              full_name: trimmedName,
-              name: trimmedName,
-              company: trimmedCompany || null,
-            },
-          })
-        }
-
+        // Profile row is created by the auth.users DB trigger.
+        // Client sync runs later via onAuthStateChange once a session exists.
         return data
       },
       async signIn(email, password) {

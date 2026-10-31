@@ -13,7 +13,7 @@ export default function AppHeader({ leading, actions }) {
     <header className="app-bar">
       <div className="app-bar-left">
         <Link to="/app" className="brand">
-          Notes Taker
+          Shareboard
         </Link>
         {leading}
       </div>

@@ -61,11 +61,11 @@ export default function HomePage() {
   const headings = {
     signin: {
       title: 'Welcome back',
-      subtitle: 'Sign in to open your shared notes.',
+      subtitle: 'Sign in to open your spaces.',
     },
     signup: {
-      title: 'Join Notes Taker',
-      subtitle: 'A few details, then you can write and invite.',
+      title: 'Join Shareboard',
+      subtitle: 'A few details, then create your first space.',
     },
     forgot: {
       title: 'Reset password',
@@ -78,29 +78,29 @@ export default function HomePage() {
       <section className="home-stage">
         <div className="home-stage-glow" aria-hidden />
         <div className="home-stage-inner">
-          <p className="home-kicker">Collaborative notes</p>
-          <h1 className="brand-hero">Notes Taker</h1>
+          <p className="home-kicker">Shared workspace</p>
+          <h1 className="brand-hero">Shareboard</h1>
           <p className="home-lead">
-            Write together, invite by email, and see who changed each line.
+            Writing, photos, PDFs, and sheets in one shared space.
           </p>
 
           <div className="home-preview" aria-hidden="true">
             <div className="home-preview-bar">
-              <span>Sprint planning</span>
-              <span className="home-preview-live">Live</span>
+              <span>Launch kit</span>
+              <span className="home-preview-live">Shared</span>
             </div>
             <div className="home-preview-body">
               <p>
-                Ship notes with share links
+                Brief for Friday launch
                 <span className="home-blame">maya  2m ago</span>
               </p>
               <p>
-                <span className="home-mark">Highlight blockers</span> before standup
+                <span className="home-mark">budget.xlsx</span> + product shots
                 <span className="home-blame">jordan  14m ago</span>
               </p>
               <p className="home-preview-check">
                 <span className="home-check" />
-                Invite design + eng by email
+                Spec PDF attached
                 <span className="home-blame">you  just now</span>
               </p>
             </div>

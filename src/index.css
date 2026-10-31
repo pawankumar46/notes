@@ -1,34 +1,35 @@
-@import url('https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,700&family=Sora:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap');
 
 :root {
-  --font-display: 'Literata', Georgia, serif;
-  --font-body: 'Sora', system-ui, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
 
-  --ink: #1a1f1c;
-  --ink-soft: #3d4540;
-  --muted: #6a736c;
-  --paper: #f6f1e7;
-  --paper-deep: #ebe4d6;
-  --surface: #fffdf8;
-  --line: #d4cbb8;
-  --line-strong: #b9ae97;
-  --margin: #c45c4a;
-  --accent: #1f6b4f;
-  --accent-hover: #18563f;
-  --accent-soft: #e4f0ea;
-  --accent-ink: #fffdf8;
+  --ink: #141816;
+  --ink-soft: #2f3833;
+  --muted: #66706a;
+  --paper: #f3f1eb;
+  --paper-deep: #e7e3d9;
+  --surface: #fffcf7;
+  --line: #d7d1c4;
+  --line-strong: #bdb5a5;
+  --margin: #9a6b4f;
+  --accent: #245c45;
+  --accent-hover: #1b4634;
+  --accent-soft: #e2efe8;
+  --accent-ink: #fffcf7;
   --warn: #8a5a12;
   --warn-soft: #f5ead2;
   --danger: #9f2d22;
   --danger-soft: #f8e6e3;
-  --info-soft: #e7ece8;
-  --focus: #1f6b4f;
-  --shadow: 0 12px 32px color-mix(in srgb, var(--ink) 8%, transparent);
-  --radius: 10px;
-  --radius-sm: 6px;
+  --info-soft: #e8ebe8;
+  --focus: #245c45;
+  --shadow: 0 14px 36px color-mix(in srgb, var(--ink) 10%, transparent);
+  --radius: 12px;
+  --radius-sm: 8px;
   --gap: 1rem;
   --measure: 72rem;
   --gutter: clamp(1rem, 4vw, 3rem);
+  --ease: 180ms ease;
 
   font-family: var(--font-body);
   color: var(--ink);
@@ -98,7 +99,7 @@ textarea {
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.02em;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
 }
 
 .brand-hero {
@@ -120,9 +121,9 @@ textarea {
   border-radius: var(--radius-sm);
   padding: 0.65rem 1.05rem;
   cursor: pointer;
-  font-weight: 500;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
-    opacity 0.15s ease;
+  font-weight: 600;
+  transition: background var(--ease), border-color var(--ease), color var(--ease),
+    opacity var(--ease), transform var(--ease);
 }
 
 .btn:hover {
@@ -144,6 +145,7 @@ textarea {
 .btn-primary:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
@@ -218,6 +220,79 @@ textarea {
   background: var(--paper);
 }
 
+.modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: var(--gutter);
+  background: color-mix(in srgb, var(--ink) 45%, transparent);
+  animation: modal-fade 0.16s ease both;
+}
+
+.modal-card {
+  width: min(100%, 24rem);
+  padding: 1.35rem 1.35rem 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  animation: modal-rise 0.18s ease both;
+}
+
+.modal-title {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+
+.modal-message {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  margin-top: 1.25rem;
+}
+
+.modal-btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--accent-ink);
+}
+
+.modal-btn-danger:hover {
+  background: color-mix(in srgb, var(--danger) 86%, black);
+  border-color: color-mix(in srgb, var(--danger) 86%, black);
+}
+
+@keyframes modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .spinner {
   width: 28px;
   height: 28px;
@@ -227,15 +302,15 @@ textarea {
   animation: spin 0.7s linear infinite;
 }
 
-/* Landing — modern stage + auth */
+/* Landing — night board + warm auth */
 .home {
-  --home-stage: #0d1f18;
-  --home-stage-2: #163528;
+  --home-stage: #101714;
+  --home-stage-2: #1a2a22;
   --home-fog: #8fd6b5;
-  --home-panel: #f7f4ee;
+  --home-panel: #f3f1eb;
   --home-surface: #fffcf7;
   --home-ink: #f3faf6;
-  --home-muted: #b7cfc3;
+  --home-muted: #a7bfb3;
   --home-line: color-mix(in srgb, var(--home-ink) 14%, transparent);
 
   min-height: 100vh;
@@ -258,8 +333,11 @@ textarea {
   position: absolute;
   inset: auto -20% -35% 20%;
   height: 70%;
-  background:
-    radial-gradient(ellipse at center, color-mix(in srgb, var(--home-fog) 28%, transparent), transparent 68%);
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--home-fog) 26%, transparent),
+    transparent 68%
+  );
   pointer-events: none;
   animation: drift 10s ease-in-out infinite alternate;
 }
@@ -270,21 +348,21 @@ textarea {
   width: min(100%, 38rem);
   display: grid;
   gap: 1rem;
-  animation: rise 0.6s ease both;
+  animation: rise 0.55s ease both;
 }
 
 .home-kicker {
   margin: 0;
   font-size: 0.92rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--home-muted);
 }
 
 .home .brand-hero {
   color: var(--home-ink);
-  max-width: 9ch;
+  max-width: 11ch;
   margin: 0;
-  font-size: clamp(3.2rem, 8vw, 5.8rem);
+  font-size: clamp(3rem, 7.5vw, 5.4rem);
 }
 
 .home-lead {
@@ -299,11 +377,14 @@ textarea {
   margin-top: 0.5rem;
   border: 1px solid var(--home-line);
   border-radius: 14px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--home-stage-2) 88%, white), var(--home-stage-2));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--home-stage-2) 88%, white),
+    var(--home-stage-2)
+  );
   box-shadow: 0 24px 60px color-mix(in srgb, black 28%, transparent);
   overflow: hidden;
-  animation: rise 0.7s ease 0.12s both;
+  animation: rise 0.65s ease 0.1s both;
 }
 
 .home-preview-bar {
@@ -319,7 +400,7 @@ textarea {
 
 .home-preview-live {
   color: var(--home-fog);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .home-preview-body {
@@ -393,7 +474,7 @@ textarea {
   border-radius: 16px;
   background: var(--home-surface);
   box-shadow: var(--shadow);
-  animation: rise 0.55s ease 0.08s both;
+  animation: rise 0.5s ease 0.06s both;
 }
 
 .auth-form-head h2 {
@@ -426,8 +507,8 @@ textarea {
   border-radius: 8px;
   padding: 0.6rem 0.2rem;
   cursor: pointer;
-  font-weight: 500;
-  transition: background 0.15s ease, color 0.15s ease;
+  font-weight: 600;
+  transition: background var(--ease), color var(--ease);
 }
 
 .auth-tab.active {
@@ -444,7 +525,7 @@ textarea {
 
 .auth-field > span {
   font-size: 0.88rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--muted);
 }
 
@@ -463,7 +544,7 @@ textarea {
   border-radius: var(--radius-sm);
   padding: 0.72rem 0.85rem;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--ease), box-shadow var(--ease);
 }
 
 .password-field {
@@ -482,14 +563,14 @@ textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition: color var(--ease), background var(--ease);
 }
 
 .password-toggle:hover {
@@ -520,7 +601,7 @@ textarea {
   color: var(--accent);
   font: inherit;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -535,7 +616,6 @@ textarea {
   gap: 0.9rem;
 }
 
-/* App chrome — quiet */
 .app-shell {
   min-height: 100vh;
   background: var(--paper);
@@ -622,12 +702,14 @@ textarea {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
-  transition: border-color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  cursor: pointer;
+  transition: border-color var(--ease), transform var(--ease), box-shadow var(--ease);
 }
 
 .note-card:hover {
   border-color: var(--line-strong);
   transform: translateY(-2px);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--ink) 6%, transparent);
 }
 
 .note-card-top {
@@ -672,7 +754,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   font-size: 0.78rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
   padding: 0.12rem 0.4rem;
@@ -722,12 +804,7 @@ textarea {
   height: 11.5rem;
   border-radius: var(--radius);
   border: 1px solid var(--line);
-  background: linear-gradient(
-    90deg,
-    var(--paper-deep),
-    var(--surface),
-    var(--paper-deep)
-  );
+  background: linear-gradient(90deg, var(--paper-deep), var(--surface), var(--paper-deep));
   background-size: 200% 100%;
   animation: shimmer 1.2s ease-in-out infinite;
 }
@@ -742,9 +819,11 @@ textarea {
 .back-link {
   color: var(--muted);
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   padding: 0.3rem 0.4rem;
   border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color var(--ease), background var(--ease);
 }
 
 .back-link:hover {
@@ -774,8 +853,8 @@ textarea {
       to bottom,
       transparent 0,
       transparent 27px,
-      color-mix(in srgb, var(--line) 35%, transparent) 27px,
-      color-mix(in srgb, var(--line) 35%, transparent) 28px
+      color-mix(in srgb, var(--line) 32%, transparent) 27px,
+      color-mix(in srgb, var(--line) 32%, transparent) 28px
     ),
     var(--surface);
 }
@@ -787,7 +866,7 @@ textarea {
   bottom: 0;
   left: clamp(1.1rem, 3vw, 2rem);
   width: 1px;
-  background: color-mix(in srgb, var(--margin) 40%, transparent);
+  background: color-mix(in srgb, var(--margin) 38%, transparent);
   pointer-events: none;
 }
 
@@ -853,10 +932,11 @@ textarea {
   color: var(--ink-soft);
   border-radius: var(--radius-sm);
   padding: 0.35rem 0.65rem;
+  min-height: 2.5rem;
   font-size: 0.82rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background var(--ease), border-color var(--ease), color var(--ease);
 }
 
 .toolbar-btn:hover {
@@ -922,6 +1002,76 @@ textarea {
 .rich-content p {
   margin: 0;
   min-height: 1.75em;
+}
+
+.space-embed {
+  margin: 0.85rem 0;
+  max-width: 100%;
+}
+
+.space-embed-image {
+  margin: 0.9rem 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--paper-deep);
+}
+
+.space-embed-image img {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  background: var(--surface);
+}
+
+.space-embed-image figcaption {
+  padding: 0.45rem 0.7rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+
+.space-embed-doc {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.space-embed-doc a {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--ease);
+}
+
+.space-embed-doc a:hover {
+  background: var(--paper-deep);
+}
+
+.embed-doc-kind {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.45rem;
+}
+
+.embed-doc-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
 }
 
 .rich-content s,
@@ -1012,7 +1162,8 @@ textarea {
   margin: 0;
 }
 
-.collab-section h3 {
+.collab-section h3,
+.file-panel-head h3 {
   font-family: var(--font-body);
   font-size: 0.86rem;
   font-weight: 600;
@@ -1020,6 +1171,72 @@ textarea {
   text-transform: none;
   color: var(--muted);
   margin-bottom: 0.5rem;
+}
+
+.file-panel {
+  display: grid;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.file-panel-head h3 {
+  margin: 0 0 0.25rem;
+}
+
+.file-panel-head p {
+  margin: 0;
+}
+
+.file-upload-btn {
+  text-align: center;
+  cursor: pointer;
+}
+
+.file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.file-open {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.2rem 0.55rem;
+  align-items: center;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+}
+
+.file-open .meta {
+  grid-column: 2;
+  margin: 0;
+}
+
+.file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .invite-form {
@@ -1111,7 +1328,7 @@ textarea {
 
 .save-pill {
   font-size: 0.78rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--muted);
   background: transparent;
   border: 1px solid var(--line);
@@ -1267,8 +1484,7 @@ textarea {
 
   .app-main,
   .editor-pane,
-  .share-pane,
-  .home-panel {
+  .share-pane {
     padding-left: 1rem;
     padding-right: 1rem;
   }

@@ -231,24 +231,49 @@ export async function getProfile(userId) {
 
 export async function ensureProfile(user) {
   if (!user?.id || !user?.email) return null
-  const { data, error } = await supabase
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session?.user?.id || session.user.id !== user.id) return null
+
+  const payload = {
+    email: user.email.toLowerCase(),
+    display_name:
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email.split('@')[0],
+    avatar_url: user.user_metadata?.avatar_url || null,
+    company: user.user_metadata?.company || null,
+  }
+
+  // Prefer update: the auth trigger already inserts the profile row.
+  const { data: updated, error: updateError } = await supabase
     .from('profiles')
-    .upsert(
-      {
-        id: user.id,
-        email: user.email.toLowerCase(),
-        display_name:
-          user.user_metadata?.full_name ||
-          user.user_metadata?.name ||
-          user.email.split('@')[0],
-        avatar_url: user.user_metadata?.avatar_url || null,
-        company: user.user_metadata?.company || null,
-      },
-      { onConflict: 'id' },
-    )
+    .update(payload)
+    .eq('id', user.id)
     .select('id, email, display_name, avatar_url, company')
-    .single()
-  if (error) throw error
+    .maybeSingle()
+
+  if (!updateError && updated) {
+    await supabase
+      .from('note_collaborators')
+      .update({ user_id: user.id, status: 'accepted' })
+      .eq('email', user.email.toLowerCase())
+      .eq('status', 'pending')
+    return updated
+  }
+
+  const { data: inserted, error: insertError } = await supabase
+    .from('profiles')
+    .insert({ id: user.id, ...payload })
+    .select('id, email, display_name, avatar_url, company')
+    .maybeSingle()
+
+  if (insertError) {
+    console.warn('ensureProfile:', insertError.message)
+    return null
+  }
 
   await supabase
     .from('note_collaborators')
@@ -256,5 +281,5 @@ export async function ensureProfile(user) {
     .eq('email', user.email.toLowerCase())
     .eq('status', 'pending')
 
-  return data
+  return inserted
 }
