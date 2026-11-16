@@ -2,8 +2,12 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
+import EmptyState from '../components/EmptyState'
+import OnboardingChecklist from '../components/OnboardingChecklist'
+import { SpacesSkeleton } from '../components/Skeleton'
 import { useAuth } from '../context/AuthContext'
 import { useDialog } from '../context/DialogContext'
+import { useToast } from '../context/ToastContext'
 import { spacePreviewText } from '../lib/files'
 import { fadeUp, listContainer, listItem, useMotionConfig } from '../lib/motion'
 import { createNote, deleteNote, listNotes } from '../lib/notes'
@@ -35,6 +39,7 @@ function greetingName(user) {
 export default function SpacesList() {
   const { user } = useAuth()
   const { confirm } = useDialog()
+  const { success, error: toastError } = useToast()
   const navigate = useNavigate()
   const { reduce } = useMotionConfig()
   const [spaces, setSpaces] = useState([])
@@ -82,11 +87,24 @@ export default function SpacesList() {
   async function handleCreate() {
     setCreating(true)
     setError(null)
+    const optimistic = {
+      id: `temp-${Date.now()}`,
+      title: 'Untitled',
+      content: '',
+      owner_id: user.id,
+      updated_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    }
+    setSpaces((prev) => [optimistic, ...prev])
     try {
       const space = await createNote(user.id)
+      setSpaces((prev) => prev.map((s) => (s.id === optimistic.id ? { ...optimistic, ...space } : s)))
+      success('Space created')
       navigate(`/app/spaces/${space.id}`)
     } catch (err) {
+      setSpaces((prev) => prev.filter((s) => s.id !== optimistic.id))
       setError(err.message)
+      toastError(err.message)
       setCreating(false)
     }
   }
@@ -102,11 +120,15 @@ export default function SpacesList() {
       danger: true,
     })
     if (!ok) return
+    const snapshot = spaces
+    setSpaces((prev) => prev.filter((n) => n.id !== id))
     try {
       await deleteNote(id)
-      setSpaces((prev) => prev.filter((n) => n.id !== id))
+      success('Space deleted')
     } catch (err) {
+      setSpaces(snapshot)
       setError(err.message)
+      toastError(err.message)
     }
   }
 
@@ -117,6 +139,8 @@ export default function SpacesList() {
   })
 
   const itemMotion = listItem(reduce)
+  const filteredEmpty = !loading && filtered.length === 0
+  const isSearchEmpty = filteredEmpty && (query || filter !== 'all')
 
   return (
     <div className="app-shell">
@@ -142,6 +166,11 @@ export default function SpacesList() {
             {creating ? 'Creating…' : 'New space'}
           </motion.button>
         </motion.header>
+
+        <OnboardingChecklist
+          userId={user.id}
+          space={spaces.some((s) => s.owner_id === user.id && !String(s.id).startsWith('temp-'))}
+        />
 
         <motion.section
           className="spaces-stats"
@@ -202,39 +231,42 @@ export default function SpacesList() {
         )}
 
         {loading ? (
-          <div className="skeleton-list" aria-hidden>
-            <div className="skeleton-row" />
-            <div className="skeleton-row" />
-            <div className="skeleton-row" />
-            <div className="skeleton-row" />
-          </div>
+          <SpacesSkeleton />
         ) : (
           <AnimatePresence mode="wait">
-            {filtered.length === 0 ? (
+            {filteredEmpty ? (
               <motion.div
                 key="empty"
-                className="empty spaces-empty"
                 initial={reduce ? false : { opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
               >
-                <div className="spaces-empty-mark" aria-hidden />
-                <h2>{query || filter !== 'all' ? 'No matches' : 'No spaces yet'}</h2>
-                <p className="muted">
-                  {query || filter !== 'all'
-                    ? 'Try another filter or search term.'
-                    : 'Start a folio for notes, PDFs, spreadsheets, and docs.'}
-                </p>
-                {!query && filter === 'all' && (
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleCreate}
-                    disabled={creating}
-                  >
-                    Create your first space
-                  </button>
-                )}
+                <EmptyState
+                  kind={isSearchEmpty ? 'search' : 'spaces'}
+                  className="spaces-empty"
+                  title={isSearchEmpty ? 'No matches' : 'No spaces yet'}
+                  description={
+                    isSearchEmpty
+                      ? 'Try another filter or search term.'
+                      : 'Start a folio for notes, PDFs, spreadsheets, and docs.'
+                  }
+                  actionLabel={
+                    isSearchEmpty
+                      ? 'Clear filters'
+                      : creating
+                        ? 'Creating…'
+                        : 'Create your first space'
+                  }
+                  actionDisabled={!isSearchEmpty && creating}
+                  onAction={
+                    isSearchEmpty
+                      ? () => {
+                          setQuery('')
+                          setFilter('all')
+                        }
+                      : handleCreate
+                  }
+                />
               </motion.div>
             ) : (
               <motion.ul
@@ -261,23 +293,28 @@ export default function SpacesList() {
                 {filtered.map((space) => {
                   const owned = space.owner_id === user.id
                   const preview = spacePreviewText(space.content)
+                  const pending = String(space.id).startsWith('temp-')
                   return (
                     <motion.li key={space.id} layout={!reduce} {...itemMotion}>
                       <motion.div
-                        whileHover={reduce ? undefined : { y: -3 }}
+                        whileHover={reduce || pending ? undefined : { y: -3 }}
                         transition={{ type: 'spring', stiffness: 320, damping: 24 }}
                       >
                         <Link
-                          to={`/app/spaces/${space.id}`}
+                          to={pending ? '#' : `/app/spaces/${space.id}`}
                           className={
                             owned ? 'note-card spaces-card' : 'note-card spaces-card is-shared'
                           }
+                          aria-disabled={pending}
+                          onClick={(e) => {
+                            if (pending) e.preventDefault()
+                          }}
                         >
                           <div className="note-card-top">
                             <span className={owned ? 'tag tag-owner' : 'tag tag-shared'}>
-                              {owned ? 'Yours' : 'Shared'}
+                              {pending ? 'Creating…' : owned ? 'Yours' : 'Shared'}
                             </span>
-                            {owned && (
+                            {owned && !pending && (
                               <button
                                 type="button"
                                 className="btn btn-ghost danger btn-sm"

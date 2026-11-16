@@ -13,6 +13,12 @@
       content="Notefolio — notes, PDFs, spreadsheets, and docs in one shared workspace."
     />
     <title>Notefolio</title>
+    <script>
+      try {
+        var t = localStorage.getItem('notefolio-theme')
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t)
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

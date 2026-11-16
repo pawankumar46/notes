@@ -2,6 +2,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import PasswordInput from '../components/PasswordInput'
+import { PageSkeleton } from '../components/Skeleton'
+import ThemeToggle from '../components/ThemeToggle'
 import { useAuth } from '../context/AuthContext'
 import { fadeUp, useMotionConfig } from '../lib/motion'
 
@@ -17,14 +19,7 @@ export default function HomePage() {
   const [error, setError] = useState(null)
   const [info, setInfo] = useState(null)
 
-  if (loading) {
-    return (
-      <div className="page-center">
-        <div className="spinner" aria-hidden />
-        <p className="muted">Loading…</p>
-      </div>
-    )
-  }
+  if (loading) return <PageSkeleton />
 
   if (passwordRecovery) return <Navigate to="/auth/reset" replace />
   if (user) return <Navigate to="/app" replace />
@@ -78,6 +73,9 @@ export default function HomePage() {
 
   return (
     <div className="home">
+      <div className="home-theme">
+        <ThemeToggle />
+      </div>
       <motion.section className="home-stage" {...fadeInStage(reduce)}>
         <div className="home-stage-glow" aria-hidden />
         <div className="home-stage-inner">

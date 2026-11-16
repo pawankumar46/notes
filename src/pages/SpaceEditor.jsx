@@ -2,8 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
 import FilePanel from '../components/FilePanel'
+import OnboardingChecklist from '../components/OnboardingChecklist'
 import RichEditor from '../components/RichEditor'
+import { EditorSkeleton } from '../components/Skeleton'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { plainTextFromHtml } from '../lib/editor'
 import {
   listSpaceFiles,
@@ -27,6 +30,7 @@ import {
 export default function SpaceEditor() {
   const { id } = useParams()
   const { user } = useAuth()
+  const { success, error: toastError } = useToast()
   const navigate = useNavigate()
 
   const [note, setNote] = useState(null)
@@ -38,7 +42,6 @@ export default function SpaceEditor() {
   const [inviting, setInviting] = useState(false)
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState(null)
-  const [shareMsg, setShareMsg] = useState(null)
   const [shareOpen, setShareOpen] = useState(false)
   const [files, setFiles] = useState([])
 
@@ -214,6 +217,7 @@ export default function SpaceEditor() {
     } catch (err) {
       setStatus('error')
       setError(err.message)
+      toastError(err.message)
     }
   }
 
@@ -240,22 +244,32 @@ export default function SpaceEditor() {
 
   async function handleInvite(e) {
     e.preventDefault()
-    setShareMsg(null)
     setError(null)
     const email = inviteEmail.trim().toLowerCase()
     if (!email) return
     if (email === user.email?.toLowerCase()) {
-      setShareMsg('You already have access to this note.')
+      toastError('You already have access to this space.')
       return
     }
     setInviting(true)
+    const tempId = `temp-${email}`
+    const optimistic = {
+      id: tempId,
+      email,
+      status: 'pending',
+      pending: true,
+    }
+    setCollaborators((prev) => {
+      const without = prev.filter((c) => c.email !== email)
+      return [...without, optimistic]
+    })
+    setInviteEmail('')
     try {
       const collab = await inviteCollaborator(id, email, user.id)
       setCollaborators((prev) => {
-        const without = prev.filter((c) => c.email !== collab.email)
+        const without = prev.filter((c) => c.id !== tempId && c.email !== collab.email)
         return [...without, collab]
       })
-      setInviteEmail('')
       await notifyEmail({
         type: 'invite',
         noteId: id,
@@ -263,20 +277,26 @@ export default function SpaceEditor() {
         noteTitle: title,
         inviterName: displayName,
       })
-      setShareMsg(`Invite sent to ${email}`)
+      success(`Invite sent to ${email}`)
     } catch (err) {
+      setCollaborators((prev) => prev.filter((c) => c.id !== tempId))
       setError(err.message)
+      toastError(err.message)
     } finally {
       setInviting(false)
     }
   }
 
   async function handleRemove(collaboratorId) {
+    const snapshot = collaborators
+    setCollaborators((prev) => prev.filter((c) => c.id !== collaboratorId))
     try {
       await removeCollaborator(collaboratorId)
-      setCollaborators((prev) => prev.filter((c) => c.id !== collaboratorId))
+      success('Collaborator removed')
     } catch (err) {
+      setCollaborators(snapshot)
       setError(err.message)
+      toastError(err.message)
     }
   }
 
@@ -304,14 +324,13 @@ export default function SpaceEditor() {
     )
   }
 
-  if (!note) {
-    return (
-      <div className="page-center">
-        <div className="spinner" aria-hidden />
-        <p className="muted">Opening note…</p>
-      </div>
-    )
-  }
+  if (!note) return <EditorSkeleton />
+
+  const hasWriting =
+    (title && title.trim() && title.trim() !== 'Untitled') ||
+    Boolean(plainTextFromHtml(content).trim())
+  const hasFile = files.some((f) => !f.pending)
+  const hasShare = collaborators.some((c) => !c.pending)
 
   return (
     <div className="app-shell editor-shell">
@@ -339,6 +358,15 @@ export default function SpaceEditor() {
 
       <div className={`editor-layout ${shareOpen ? 'share-open' : ''}`}>
         <section className="editor-pane">
+          <OnboardingChecklist
+            userId={user.id}
+            space
+            write={hasWriting}
+            file={hasFile}
+            share={hasShare}
+            compact
+          />
+
           <input
             className="title-input"
             value={title}
@@ -404,12 +432,6 @@ export default function SpaceEditor() {
             <p className="muted small">Only the owner can invite new people.</p>
           )}
 
-          {shareMsg && (
-            <p className="alert alert-ok" role="status">
-              {shareMsg}
-            </p>
-          )}
-
           <FilePanel
             spaceId={id}
             userId={user.id}
@@ -439,18 +461,22 @@ export default function SpaceEditor() {
                 <span className="tag tag-owner">Owner</span>
               </li>
               {collaborators.map((c) => (
-                <li key={c.id} className="collab-item">
+                <li key={c.id} className={c.pending ? 'collab-item is-pending' : 'collab-item'}>
                   <div>
                     <div className="collab-email">{c.email}</div>
                     <div className="meta">
-                      {c.status === 'accepted' ? 'Can edit' : 'Invite pending'}
+                      {c.pending
+                        ? 'Sending invite…'
+                        : c.status === 'accepted'
+                          ? 'Can edit'
+                          : 'Invite pending'}
                     </div>
                   </div>
                   <div className="collab-actions">
                     <span className={c.status === 'accepted' ? 'tag tag-shared' : 'tag'}>
-                      {c.status === 'accepted' ? 'Editor' : 'Pending'}
+                      {c.pending ? 'Sending' : c.status === 'accepted' ? 'Editor' : 'Pending'}
                     </span>
-                    {isOwner && (
+                    {isOwner && !c.pending && (
                       <button
                         type="button"
                         className="btn btn-ghost danger btn-sm"

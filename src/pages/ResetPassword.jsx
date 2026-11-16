@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import PasswordInput from '../components/PasswordInput'
+import { PageSkeleton } from '../components/Skeleton'
 import { useAuth } from '../context/AuthContext'
 
 export default function ResetPassword() {
@@ -45,14 +46,7 @@ export default function ResetPassword() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="page-center">
-        <div className="spinner" aria-hidden />
-        <p className="muted">Loading…</p>
-      </div>
-    )
-  }
+  if (loading) return <PageSkeleton />
 
   if (!passwordRecovery && !user) {
     return null

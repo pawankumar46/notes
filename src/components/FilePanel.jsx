@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react'
+import EmptyState from './EmptyState'
 import { useDialog } from '../context/DialogContext'
+import { useToast } from '../context/ToastContext'
 import {
   ACCEPT_ATTR,
   buildEmbedHtml,
@@ -20,40 +22,53 @@ export default function FilePanel({
   onRemoved,
 }) {
   const { confirm } = useDialog()
+  const { success, error: toastError } = useToast()
   const inputRef = useRef(null)
   const [busy, setBusy] = useState(false)
   const [removingId, setRemovingId] = useState(null)
-  const [message, setMessage] = useState(null)
-  const [error, setError] = useState(null)
 
   async function handleFiles(fileList) {
     const picked = [...fileList]
     if (!picked.length) return
     setBusy(true)
-    setError(null)
-    setMessage(null)
 
     try {
       for (const raw of picked) {
-        const { record, originalSize, compressedSize } = await uploadSpaceFile(
-          spaceId,
-          userId,
-          raw,
-        )
-        const url = await getSpaceFileUrl(record)
-        setFiles((prev) => [record, ...prev.filter((f) => f.id !== record.id)])
-        onInserted?.(buildEmbedHtml(record, url), record)
+        const tempId = `temp-${Date.now()}-${raw.name}`
+        const optimistic = {
+          id: tempId,
+          file_name: raw.name,
+          file_type: 'file',
+          file_size: raw.size,
+          uploaded_by: userId,
+          pending: true,
+        }
+        setFiles((prev) => [optimistic, ...prev])
 
-        if (compressedSize < originalSize) {
-          setMessage(
-            `Compressed and added ${record.file_name} (${formatBytes(originalSize)} → ${formatBytes(compressedSize)})`,
+        try {
+          const { record, originalSize, compressedSize } = await uploadSpaceFile(
+            spaceId,
+            userId,
+            raw,
           )
-        } else {
-          setMessage(`Added ${record.file_name} to the writing area`)
+          const url = await getSpaceFileUrl(record)
+          setFiles((prev) => [record, ...prev.filter((f) => f.id !== tempId && f.id !== record.id)])
+          onInserted?.(buildEmbedHtml(record, url), record)
+
+          if (compressedSize < originalSize) {
+            success(
+              `Compressed ${record.file_name} (${formatBytes(originalSize)} → ${formatBytes(compressedSize)})`,
+            )
+          } else {
+            success(`Added ${record.file_name}`)
+          }
+        } catch (err) {
+          setFiles((prev) => prev.filter((f) => f.id !== tempId))
+          throw err
         }
       }
     } catch (err) {
-      setError(err.message)
+      toastError(err.message)
     } finally {
       setBusy(false)
       if (inputRef.current) inputRef.current.value = ''
@@ -61,25 +76,28 @@ export default function FilePanel({
   }
 
   async function openFile(file) {
+    if (file.pending) return
     try {
       const url = await getSpaceFileUrl(file)
       window.open(url, '_blank', 'noopener,noreferrer')
     } catch (err) {
-      setError(err.message)
+      toastError(err.message)
     }
   }
 
   async function insertAgain(file) {
+    if (file.pending) return
     try {
       const url = await getSpaceFileUrl(file)
       onInserted?.(buildEmbedHtml(file, url), file)
-      setMessage(`Inserted ${file.file_name} into the writing area`)
+      success(`Inserted ${file.file_name}`)
     } catch (err) {
-      setError(err.message)
+      toastError(err.message)
     }
   }
 
   async function removeFile(file) {
+    if (file.pending) return
     const ok = await confirm({
       title: 'Delete file?',
       message: `Delete “${file.file_name}” from this space? It will be removed from the database and writing area.`,
@@ -89,15 +107,15 @@ export default function FilePanel({
     })
     if (!ok) return
     setRemovingId(file.id)
-    setError(null)
-    setMessage(null)
+    const snapshot = files
+    setFiles((prev) => prev.filter((f) => f.id !== file.id))
     try {
       await deleteSpaceFile(file)
-      setFiles((prev) => prev.filter((f) => f.id !== file.id))
       onRemoved?.(file)
-      setMessage(`Deleted ${file.file_name}`)
+      success(`Deleted ${file.file_name}`)
     } catch (err) {
-      setError(err.message || 'Could not delete file')
+      setFiles(snapshot)
+      toastError(err.message || 'Could not delete file')
     } finally {
       setRemovingId(null)
     }
@@ -129,32 +147,41 @@ export default function FilePanel({
         </div>
       )}
 
-      {error && (
-        <p className="alert alert-error" role="alert">
-          {error}
-        </p>
-      )}
-      {message && (
-        <p className="alert alert-ok" role="status">
-          {message}
-        </p>
-      )}
-
       {files.length === 0 ? (
-        <p className="muted small">No files yet.</p>
+        <EmptyState
+          kind="files"
+          className="empty-state-compact"
+          title="No files yet"
+          description="Drop PDFs, sheets, or images into this space."
+          actionLabel={canUpload ? (busy ? 'Uploading…' : 'Upload a file') : undefined}
+          actionDisabled={busy}
+          onAction={
+            canUpload
+              ? () => inputRef.current?.click()
+              : undefined
+          }
+        />
       ) : (
         <ul className="file-list">
           {files.map((file) => (
-            <li key={file.id} className="file-item">
-              <button type="button" className="file-open" onClick={() => openFile(file)}>
+            <li key={file.id} className={file.pending ? 'file-item is-pending' : 'file-item'}>
+              <button
+                type="button"
+                className="file-open"
+                onClick={() => openFile(file)}
+                disabled={file.pending}
+              >
                 <span className="tag">{fileTypeLabel(file.file_type)}</span>
                 <span className="file-name">{file.file_name}</span>
-                <span className="meta">{formatBytes(file.file_size)}</span>
+                <span className="meta">
+                  {file.pending ? 'Uploading…' : formatBytes(file.file_size)}
+                </span>
               </button>
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
                 onClick={() => insertAgain(file)}
+                disabled={file.pending}
               >
                 Insert
               </button>
@@ -162,7 +189,7 @@ export default function FilePanel({
                 <button
                   type="button"
                   className="btn btn-ghost danger btn-sm"
-                  disabled={removingId === file.id}
+                  disabled={file.pending || removingId === file.id}
                   onClick={() => removeFile(file)}
                 >
                   {removingId === file.id ? 'Deleting…' : 'Delete'}

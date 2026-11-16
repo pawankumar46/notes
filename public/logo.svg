@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Notefolio">
-  <rect width="128" height="128" rx="28" fill="#2383E2"/>
+  <rect width="128" height="128" rx="28" fill="#0F766E"/>
   <path
     fill="#FFFFFF"
     d="M36 28h13.2l22.4 46.8V28H84v72H70.8L48.4 53.2V100H36V28z"
   />
-  <path fill="#E7F3FC" d="M92 28l14 14v58H92z"/>
+  <path fill="#CCFBF1" d="M92 28l14 14v58H92z"/>
 </svg>

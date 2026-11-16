@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import ThemeToggle from './ThemeToggle'
 
 export default function AppHeader({ leading, actions }) {
   const { user, signOut } = useAuth()
@@ -20,6 +21,7 @@ export default function AppHeader({ leading, actions }) {
       </div>
       <div className="app-bar-right">
         {actions}
+        <ThemeToggle />
         <span className="user-chip" title={label}>
           {label}
         </span>
