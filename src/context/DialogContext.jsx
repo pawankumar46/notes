@@ -1,3 +1,4 @@
+import { AnimatePresence } from 'framer-motion'
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
 import ConfirmModal from '../components/ConfirmModal'
 
@@ -55,18 +56,21 @@ export function DialogProvider({ children }) {
   return (
     <DialogContext.Provider value={value}>
       {children}
-      {dialog && (
-        <ConfirmModal
-          mode={dialog.mode}
-          title={dialog.title}
-          message={dialog.message}
-          confirmLabel={dialog.confirmLabel}
-          cancelLabel={dialog.cancelLabel}
-          danger={dialog.danger}
-          onConfirm={() => close(true)}
-          onCancel={() => close(false)}
-        />
-      )}
+      <AnimatePresence>
+        {dialog && (
+          <ConfirmModal
+            key="app-dialog"
+            mode={dialog.mode}
+            title={dialog.title}
+            message={dialog.message}
+            confirmLabel={dialog.confirmLabel}
+            cancelLabel={dialog.cancelLabel}
+            danger={dialog.danger}
+            onConfirm={() => close(true)}
+            onCancel={() => close(false)}
+          />
+        )}
+      </AnimatePresence>
     </DialogContext.Provider>
   )
 }

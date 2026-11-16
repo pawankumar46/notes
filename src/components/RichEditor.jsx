@@ -97,11 +97,12 @@ const RichEditor = forwardRef(function RichEditor(
     },
     removeFileEmbeds(fileId) {
       const el = editorRef.current
-      if (!el || !fileId) return
+      if (!el || !fileId) return el?.innerHTML
       el.querySelectorAll(`[data-file-id="${CSS.escape(fileId)}"]`).forEach((node) => {
         node.remove()
       })
       emitChange()
+      return el.innerHTML
     },
   }))
 

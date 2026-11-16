@@ -1,10 +1,13 @@
+import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import PasswordInput from '../components/PasswordInput'
 import { useAuth } from '../context/AuthContext'
+import { fadeUp, useMotionConfig } from '../lib/motion'
 
 export default function HomePage() {
   const { user, loading, passwordRecovery, signIn, signUp, resetPassword } = useAuth()
+  const { reduce } = useMotionConfig()
   const [mode, setMode] = useState('signin')
   const [fullName, setFullName] = useState('')
   const [company, setCompany] = useState('')
@@ -60,43 +63,61 @@ export default function HomePage() {
 
   const headings = {
     signin: {
-      title: 'Welcome back',
-      subtitle: 'Sign in to open your spaces.',
+      title: 'Open your folio',
+      subtitle: 'Sign in to continue shared work.',
     },
     signup: {
-      title: 'Join Shareboard',
-      subtitle: 'A few details, then create your first space.',
+      title: 'Join Notefolio',
+      subtitle: 'Set up access for your team, then start a space.',
     },
     forgot: {
       title: 'Reset password',
-      subtitle: 'We’ll send a link to your email.',
+      subtitle: 'We’ll email a reset link.',
     },
   }
 
   return (
     <div className="home">
-      <section className="home-stage">
+      <motion.section className="home-stage" {...fadeInStage(reduce)}>
         <div className="home-stage-glow" aria-hidden />
         <div className="home-stage-inner">
-          <p className="home-kicker">Shared workspace</p>
-          <h1 className="brand-hero">Shareboard</h1>
-          <p className="home-lead">
-            Writing, photos, PDFs, and sheets in one shared space.
-          </p>
+          <motion.div className="home-brand-row" {...fadeUp(reduce, 0.05)}>
+            <motion.img
+              className="home-logo"
+              src="/logo.svg"
+              alt=""
+              width="40"
+              height="40"
+              whileHover={reduce ? undefined : { rotate: -4, scale: 1.05 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 18 }}
+            />
+            <h1 className="brand-hero">Notefolio</h1>
+          </motion.div>
+          <motion.p className="home-lead" {...fadeUp(reduce, 0.12)}>
+            Notes, PDFs, spreadsheets, and docs in one shared folio — built for
+            engineering, architecture, and IT teams.
+          </motion.p>
 
-          <div className="home-preview" aria-hidden="true">
+          <motion.div
+            className="home-preview"
+            data-ui
+            aria-hidden="true"
+            {...fadeUp(reduce, 0.2)}
+            whileHover={reduce ? undefined : { y: -3 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+          >
             <div className="home-preview-bar">
-              <span>Launch kit</span>
-              <span className="home-preview-live">Shared</span>
+              <span>Site package · Q3</span>
+              <span className="home-preview-live">Live</span>
             </div>
             <div className="home-preview-body">
               <p>
-                Brief for Friday launch
-                <span className="home-blame">maya  2m ago</span>
+                Facade revision notes
+                <span className="home-blame">aisha  2m ago</span>
               </p>
               <p>
-                <span className="home-mark">budget.xlsx</span> + product shots
-                <span className="home-blame">jordan  14m ago</span>
+                <span className="home-mark">schedule.xlsx</span> + plan set
+                <span className="home-blame">dev  14m ago</span>
               </p>
               <p className="home-preview-check">
                 <span className="home-check" />
@@ -104,16 +125,25 @@ export default function HomePage() {
                 <span className="home-blame">you  just now</span>
               </p>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="home-auth">
+      <motion.section className="home-auth" {...fadeUp(reduce, 0.1)}>
         <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="auth-form-head">
-            <h2>{headings[mode].title}</h2>
-            <p className="muted small">{headings[mode].subtitle}</p>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mode}
+              className="auth-form-head"
+              initial={reduce ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? undefined : { opacity: 0, y: -6 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <h2>{headings[mode].title}</h2>
+              <p className="muted small">{headings[mode].subtitle}</p>
+            </motion.div>
+          </AnimatePresence>
 
           {mode !== 'forgot' && (
             <div className="auth-tabs" role="tablist">
@@ -146,34 +176,43 @@ export default function HomePage() {
             </div>
           )}
 
-          {mode === 'signup' && (
-            <>
-              <label className="auth-field">
-                <span>Full name</span>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Ada Lovelace"
-                  autoComplete="name"
-                  required
-                />
-              </label>
+          <AnimatePresence mode="wait">
+            {mode === 'signup' && (
+              <motion.div
+                key="signup-fields"
+                className="auth-extra"
+                initial={reduce ? false : { opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={reduce ? undefined : { opacity: 0, height: 0 }}
+                transition={{ duration: 0.28 }}
+              >
+                <label className="auth-field">
+                  <span>Full name</span>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Ada Lovelace"
+                    autoComplete="name"
+                    required
+                  />
+                </label>
 
-              <label className="auth-field">
-                <span>
-                  Company <span className="field-optional">(optional)</span>
-                </span>
-                <input
-                  type="text"
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                  placeholder="Acme Inc."
-                  autoComplete="organization"
-                />
-              </label>
-            </>
-          )}
+                <label className="auth-field">
+                  <span>
+                    Company <span className="field-optional">(optional)</span>
+                  </span>
+                  <input
+                    type="text"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    placeholder="Acme Inc."
+                    autoComplete="organization"
+                  />
+                </label>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <label className="auth-field">
             <span>Email</span>
@@ -214,18 +253,40 @@ export default function HomePage() {
             </div>
           )}
 
-          {error && (
-            <p className="alert alert-error" role="alert">
-              {error}
-            </p>
-          )}
-          {info && (
-            <p className="alert alert-ok" role="status">
-              {info}
-            </p>
-          )}
+          <AnimatePresence>
+            {error && (
+              <motion.p
+                key="error"
+                className="alert alert-error"
+                role="alert"
+                initial={reduce ? false : { opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+              >
+                {error}
+              </motion.p>
+            )}
+            {info && (
+              <motion.p
+                key="info"
+                className="alert alert-ok"
+                role="status"
+                initial={reduce ? false : { opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+              >
+                {info}
+              </motion.p>
+            )}
+          </AnimatePresence>
 
-          <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
+          <motion.button
+            type="submit"
+            className="btn btn-primary btn-block"
+            disabled={busy}
+            whileTap={reduce || busy ? undefined : { scale: 0.98 }}
+            whileHover={reduce || busy ? undefined : { y: -1 }}
+          >
             {busy
               ? 'Please wait…'
               : mode === 'signin'
@@ -233,7 +294,7 @@ export default function HomePage() {
                 : mode === 'signup'
                   ? 'Create account'
                   : 'Send reset link'}
-          </button>
+          </motion.button>
 
           {mode === 'forgot' && (
             <button
@@ -249,7 +310,16 @@ export default function HomePage() {
             </button>
           )}
         </form>
-      </section>
+      </motion.section>
     </div>
   )
+}
+
+function fadeInStage(reduce) {
+  if (reduce) return { initial: false, animate: { opacity: 1 } }
+  return {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    transition: { duration: 0.5 },
+  }
 }

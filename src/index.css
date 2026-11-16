@@ -1,35 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:wght@400&display=swap');
+
+/*
+  Notefolio — calm workspace for notes, PDFs, sheets, and docs.
+  Inspired by Notion (quiet pages, soft hover) + Evergreen (clear blue actions, B2B calm).
+  60 / 30 / 10: soft ground / white surface / link blue.
+*/
 
 :root {
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Manrope', system-ui, sans-serif;
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-body: 'Instrument Sans', system-ui, sans-serif;
 
-  --ink: #141816;
-  --ink-soft: #2f3833;
-  --muted: #66706a;
-  --paper: #f3f1eb;
-  --paper-deep: #e7e3d9;
-  --surface: #fffcf7;
-  --line: #d7d1c4;
-  --line-strong: #bdb5a5;
-  --margin: #9a6b4f;
-  --accent: #245c45;
-  --accent-hover: #1b4634;
-  --accent-soft: #e2efe8;
-  --accent-ink: #fffcf7;
-  --warn: #8a5a12;
-  --warn-soft: #f5ead2;
-  --danger: #9f2d22;
-  --danger-soft: #f8e6e3;
-  --info-soft: #e8ebe8;
-  --focus: #245c45;
-  --shadow: 0 14px 36px color-mix(in srgb, var(--ink) 10%, transparent);
-  --radius: 12px;
-  --radius-sm: 8px;
-  --gap: 1rem;
+  /* 60% main */
+  --color-main: #f7f6f3;
+  /* 30% secondary */
+  --color-secondary: #ffffff;
+  --color-secondary-deep: #efeee9;
+  /* 10% accent — Evergreen/Notion-like blue */
+  --color-accent: #2383e2;
+  --color-accent-ink: #ffffff;
+  --color-accent-soft: #e7f3fc;
+
+  --ink: #37352f;
+  --ink-soft: #4b4a45;
+  --muted: #787774;
+  --paper: var(--color-main);
+  --paper-deep: var(--color-secondary-deep);
+  --surface: var(--color-secondary);
+  --line: #e3e2e0;
+  --line-strong: #d3d1cb;
+  --margin: var(--color-accent);
+  --accent: var(--color-accent);
+  --accent-hover: #1a6fc2;
+  --accent-soft: var(--color-accent-soft);
+  --accent-ink: var(--color-accent-ink);
+  --warn: #9a6700;
+  --warn-soft: #fbf3db;
+  --danger: #e03e3e;
+  --danger-soft: #fdebec;
+  --info-soft: #f1f1ef;
+  --focus: var(--color-accent);
+  --shadow: 0 4px 18px color-mix(in srgb, var(--ink) 8%, transparent);
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-tab: 6px;
+  --gap: 0.75rem;
   --measure: 72rem;
   --gutter: clamp(1rem, 4vw, 3rem);
-  --ease: 180ms ease;
+  --ease: 160ms ease;
+  --control-height: 2.25rem;
 
   font-family: var(--font-body);
   color: var(--ink);
@@ -61,6 +79,8 @@ body {
   overflow-x: clip;
   background: var(--paper);
   color: var(--ink);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 a {
@@ -96,22 +116,37 @@ textarea {
 }
 
 .brand {
-  font-family: var(--font-display);
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-body);
+  font-weight: 600;
   letter-spacing: -0.02em;
-  font-size: 1.25rem;
+  font-size: 1.05rem;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.brand-mark {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+  object-fit: cover;
+  display: block;
 }
 
 .brand-hero {
   font-family: var(--font-display);
-  font-size: clamp(3rem, 7vw, 5.25rem);
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 0.98;
+  font-size: clamp(2.8rem, 6.5vw, 4.5rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
   margin: 0 0 0.85rem;
-  max-width: 10ch;
+  max-width: 14ch;
   overflow-wrap: break-word;
   min-width: 0;
+  text-transform: none;
 }
 
 .btn {
@@ -119,7 +154,8 @@ textarea {
   background: var(--surface);
   color: var(--ink);
   border-radius: var(--radius-sm);
-  padding: 0.65rem 1.05rem;
+  padding: 0.65rem 1.1rem;
+  min-height: var(--control-height);
   cursor: pointer;
   font-weight: 600;
   transition: background var(--ease), border-color var(--ease), color var(--ease),
@@ -137,25 +173,25 @@ textarea {
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: var(--accent-ink);
-  border-color: var(--accent);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  border-color: var(--color-accent);
+  border-radius: var(--radius-sm);
 }
 
 .btn-primary:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
-  transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--color-accent-soft);
+  color: var(--accent-hover);
   border-color: transparent;
 }
 
 .btn-secondary:hover {
-  background: color-mix(in srgb, var(--accent-soft) 70%, var(--line));
+  background: color-mix(in srgb, var(--color-accent-soft) 70%, var(--line));
 }
 
 .btn-ghost {
@@ -177,6 +213,7 @@ textarea {
 
 .btn-sm {
   padding: 0.35rem 0.65rem;
+  min-height: 2rem;
   font-size: 0.85rem;
 }
 
@@ -192,7 +229,7 @@ textarea {
   margin: 0;
   padding: 0.7rem 0.85rem;
   border-radius: var(--radius-sm);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
 }
 
 .alert.compact {
@@ -206,7 +243,7 @@ textarea {
 
 .alert-ok {
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-hover);
 }
 
 .page-center {
@@ -227,31 +264,31 @@ textarea {
   display: grid;
   place-items: center;
   padding: var(--gutter);
-  background: color-mix(in srgb, var(--ink) 45%, transparent);
-  animation: modal-fade 0.16s ease both;
+  background: color-mix(in srgb, var(--ink) 48%, transparent);
+  backdrop-filter: blur(6px);
 }
 
 .modal-card {
   width: min(100%, 24rem);
-  padding: 1.35rem 1.35rem 1.2rem;
+  padding: 1.5rem;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--surface);
   box-shadow: var(--shadow);
-  animation: modal-rise 0.18s ease both;
 }
 
 .modal-title {
   margin: 0 0 0.45rem;
-  font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 .modal-message {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 0.98rem;
+  font-size: 1rem;
   line-height: 1.5;
 }
 
@@ -265,7 +302,7 @@ textarea {
 .modal-btn-danger {
   background: var(--danger);
   border-color: var(--danger);
-  color: var(--accent-ink);
+  color: #fff;
 }
 
 .modal-btn-danger:hover {
@@ -285,11 +322,11 @@ textarea {
 @keyframes modal-rise {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
@@ -297,25 +334,25 @@ textarea {
   width: 28px;
   height: 28px;
   border: 2px solid var(--line);
-  border-top-color: var(--accent);
+  border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
 
-/* Landing — night board + warm auth */
+/* Landing — calm split + auth (Notion/Evergreen quiet) */
 .home {
-  --home-stage: #101714;
-  --home-stage-2: #1a2a22;
-  --home-fog: #8fd6b5;
-  --home-panel: #f3f1eb;
-  --home-surface: #fffcf7;
-  --home-ink: #f3faf6;
-  --home-muted: #a7bfb3;
-  --home-line: color-mix(in srgb, var(--home-ink) 14%, transparent);
+  --home-stage: #f7f6f3;
+  --home-stage-2: #ffffff;
+  --home-fog: var(--color-accent);
+  --home-panel: #ffffff;
+  --home-surface: #ffffff;
+  --home-ink: var(--ink);
+  --home-muted: var(--muted);
+  --home-line: var(--line);
 
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(22rem, 0.8fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(22rem, 0.85fr);
   background: var(--home-stage);
 }
 
@@ -327,19 +364,11 @@ textarea {
   padding: clamp(2rem, 6vw, 4.5rem);
   color: var(--home-ink);
   min-width: 0;
+  background: var(--home-stage);
 }
 
 .home-stage-glow {
-  position: absolute;
-  inset: auto -20% -35% 20%;
-  height: 70%;
-  background: radial-gradient(
-    ellipse at center,
-    color-mix(in srgb, var(--home-fog) 26%, transparent),
-    transparent 68%
-  );
-  pointer-events: none;
-  animation: drift 10s ease-in-out infinite alternate;
+  display: none;
 }
 
 .home-stage-inner {
@@ -348,43 +377,49 @@ textarea {
   width: min(100%, 38rem);
   display: grid;
   gap: 1rem;
-  animation: rise 0.55s ease both;
+  animation: rise 0.45s ease both;
+}
+
+.home-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.home-logo {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.65rem;
+  flex-shrink: 0;
 }
 
 .home-kicker {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--home-muted);
+  display: none;
 }
 
 .home .brand-hero {
   color: var(--home-ink);
   max-width: 11ch;
   margin: 0;
-  font-size: clamp(3rem, 7.5vw, 5.4rem);
 }
 
 .home-lead {
-  font-size: 1.12rem;
+  font-size: clamp(1.05rem, 1.5vw, 1.2rem);
   color: var(--home-muted);
-  max-width: 32ch;
+  max-width: 34ch;
   margin: 0 0 0.75rem;
   line-height: 1.55;
 }
 
 .home-preview {
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
   border: 1px solid var(--home-line);
-  border-radius: 14px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--home-stage-2) 88%, white),
-    var(--home-stage-2)
-  );
-  box-shadow: 0 24px 60px color-mix(in srgb, black 28%, transparent);
+  border-radius: 10px;
+  background: var(--home-stage-2);
   overflow: hidden;
-  animation: rise 0.65s ease 0.1s both;
+  animation: rise 0.45s ease 0.08s both;
+  position: relative;
 }
 
 .home-preview-bar {
@@ -392,22 +427,22 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--home-line);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   color: var(--home-muted);
 }
 
 .home-preview-live {
-  color: var(--home-fog);
-  font-weight: 700;
+  color: var(--color-accent);
+  font-weight: 600;
 }
 
 .home-preview-body {
-  padding: 1rem 1rem 1.15rem;
+  padding: 1rem 1rem 1.2rem;
   display: grid;
-  gap: 0.85rem;
-  font-size: 0.98rem;
+  gap: 0.9rem;
+  font-size: 1rem;
   line-height: 1.55;
 }
 
@@ -423,16 +458,16 @@ textarea {
 .home-blame {
   margin-left: auto;
   color: var(--home-muted);
-  opacity: 0.45;
-  filter: blur(0.2px);
-  font-size: 0.78rem;
+  opacity: 0.7;
+  font-size: 0.8rem;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .home-mark {
-  background: color-mix(in srgb, #ffe566 55%, transparent);
-  color: var(--home-ink);
-  border-radius: 4px;
+  background: var(--color-accent-soft);
+  color: var(--accent-hover);
+  border-radius: 3px;
   padding: 0.05rem 0.28rem;
 }
 
@@ -447,8 +482,8 @@ textarea {
   border-radius: 3px;
   flex-shrink: 0;
   background:
-    linear-gradient(135deg, transparent 45%, var(--home-fog) 45%, var(--home-fog) 55%, transparent 55%),
-    linear-gradient(45deg, transparent 40%, var(--home-fog) 40%, var(--home-fog) 60%, transparent 60%);
+    linear-gradient(135deg, transparent 45%, var(--color-accent) 45%, var(--color-accent) 55%, transparent 55%),
+    linear-gradient(45deg, transparent 40%, var(--color-accent) 40%, var(--color-accent) 60%, transparent 60%);
   background-size: 70% 70%;
   background-repeat: no-repeat;
   background-position: center;
@@ -459,9 +494,8 @@ textarea {
   align-items: center;
   justify-content: center;
   padding: clamp(1.75rem, 4vw, 3rem);
-  background:
-    radial-gradient(700px 420px at 100% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
-    var(--home-panel);
+  background: var(--home-panel);
+  border-left: 1px solid var(--line);
   min-width: 0;
 }
 
@@ -469,17 +503,18 @@ textarea {
   width: min(100%, 24.5rem);
   display: grid;
   gap: 0.95rem;
-  padding: 1.5rem;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--home-surface);
-  box-shadow: var(--shadow);
-  animation: rise 0.5s ease 0.06s both;
+  padding: 0.25rem 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  animation: rise 0.4s ease 0.06s both;
+  box-shadow: none;
 }
 
 .auth-form-head h2 {
-  font-family: var(--font-display);
-  font-size: 1.7rem;
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  font-weight: 600;
   margin: 0 0 0.3rem;
   letter-spacing: -0.02em;
 }
@@ -488,24 +523,27 @@ textarea {
   margin: 0;
 }
 
+.auth-extra {
+  display: grid;
+  gap: 0.95rem;
+  overflow: hidden;
+}
+
 .auth-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.25rem;
   padding: 0.25rem;
   background: var(--paper-deep);
-  border-radius: 10px;
-  border-bottom: none;
+  border-radius: 8px;
 }
 
 .auth-tab {
   border: none;
-  border-bottom: none;
-  margin-bottom: 0;
   background: transparent;
   color: var(--muted);
-  border-radius: 8px;
-  padding: 0.6rem 0.2rem;
+  border-radius: 6px;
+  padding: 0.65rem 0.2rem;
   cursor: pointer;
   font-weight: 600;
   transition: background var(--ease), color var(--ease);
@@ -514,8 +552,6 @@ textarea {
 .auth-tab.active {
   color: var(--ink);
   background: var(--home-surface);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 8%, transparent);
-  border-bottom-color: transparent;
 }
 
 .auth-field {
@@ -524,14 +560,14 @@ textarea {
 }
 
 .auth-field > span {
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--muted);
 }
 
 .field-optional {
   font-weight: 400;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .auth-field input,
@@ -542,7 +578,8 @@ textarea {
   background: var(--surface);
   color: var(--ink);
   border-radius: var(--radius-sm);
-  padding: 0.72rem 0.85rem;
+  padding: 0.75rem 0.9rem;
+  font-size: 1rem;
   outline: none;
   transition: border-color var(--ease), box-shadow var(--ease);
 }
@@ -558,7 +595,7 @@ textarea {
 .password-toggle {
   position: absolute;
   top: 50%;
-  right: 0.4rem;
+  right: 0.35rem;
   transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
@@ -584,8 +621,8 @@ textarea {
 .invite-form input:focus-visible,
 .title-input:focus-visible,
 .content-input:focus-visible {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 22%, transparent);
 }
 
 .auth-actions {
@@ -598,9 +635,9 @@ textarea {
   border: none;
   background: none;
   padding: 0;
-  color: var(--accent);
+  color: var(--color-accent);
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -616,6 +653,7 @@ textarea {
   gap: 0.9rem;
 }
 
+/* App chrome */
 .app-shell {
   min-height: 100vh;
   background: var(--paper);
@@ -626,12 +664,17 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: var(--gap);
-  padding: 0.8rem var(--gutter);
+  padding: 0.85rem var(--gutter);
+  padding-top: max(0.85rem, env(safe-area-inset-top));
   border-bottom: 1px solid var(--line);
   background: var(--surface);
   position: sticky;
   top: 0;
   z-index: 5;
+}
+
+.btn-signout-short {
+  display: none;
 }
 
 .app-bar-left,
@@ -648,13 +691,188 @@ textarea {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
 }
 
 .app-main {
   width: min(100%, var(--measure));
   margin: 0 auto;
-  padding: 2rem var(--gutter) 4rem;
+  padding: 2.25rem var(--gutter) 4rem;
+}
+
+.spaces-home {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.spaces-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 0.5rem 0 0.25rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  position: relative;
+}
+
+.spaces-date {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.spaces-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.6vw, 2.75rem);
+  font-weight: 400;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.spaces-lead {
+  margin: 0;
+  max-width: 36ch;
+}
+
+.spaces-create {
+  flex-shrink: 0;
+  min-width: 8.5rem;
+}
+
+.spaces-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.spaces-stat {
+  display: grid;
+  gap: 0.2rem;
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: default;
+}
+
+.spaces-stat-value {
+  font-family: var(--font-body);
+  font-size: clamp(1.45rem, 2.2vw, 1.75rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.spaces-stat:first-child .spaces-stat-value {
+  color: var(--ink);
+}
+
+.spaces-stat-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.spaces-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.spaces-filters {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--paper-deep);
+  border-radius: 10px;
+}
+
+.spaces-filter {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 0.55rem 0.95rem;
+  min-height: 2.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background var(--ease), color var(--ease);
+}
+
+.spaces-filter.active {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.spaces-filter:hover:not(.active) {
+  color: var(--ink);
+}
+
+.spaces-search {
+  flex: 1;
+  min-width: 12rem;
+  max-width: 22rem;
+}
+
+.spaces-search input,
+.search-field input {
+  max-width: none;
+}
+
+.spaces-grid .spaces-card {
+  min-height: 13rem;
+}
+
+.spaces-card.is-shared {
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.spaces-new-card {
+  width: 100%;
+  text-align: left;
+  border-style: dashed;
+  background: transparent;
+  cursor: pointer;
+}
+
+.spaces-new-card:hover {
+  border-color: var(--line-strong);
+  background: #efeee9;
+}
+
+.spaces-new-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+  background: var(--info-soft);
+  color: var(--ink);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.spaces-empty {
+  padding: 3.2rem 1.5rem;
+}
+
+.spaces-empty-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-bottom: 0.35rem;
+  border-radius: 6px;
+  background: url('/logo.svg') center / cover no-repeat;
 }
 
 .list-head {
@@ -662,14 +880,16 @@ textarea {
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--gap);
-  margin-bottom: 1.35rem;
+  margin-bottom: 1.5rem;
 }
 
 .list-head h1 {
-  font-family: var(--font-display);
-  font-size: clamp(1.9rem, 3vw, 2.35rem);
-  margin: 0 0 0.2rem;
-  letter-spacing: -0.03em;
+  font-family: var(--font-body);
+  font-size: clamp(1.6rem, 2.5vw, 1.9rem);
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .list-head p {
@@ -690,7 +910,7 @@ textarea {
   padding: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .note-card {
@@ -700,16 +920,17 @@ textarea {
   min-height: 11.5rem;
   padding: 1rem 1.05rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: 10px;
   background: var(--surface);
   cursor: pointer;
-  transition: border-color var(--ease), transform var(--ease), box-shadow var(--ease);
+  transition: border-color var(--ease), background var(--ease), box-shadow var(--ease);
+  position: relative;
 }
 
 .note-card:hover {
   border-color: var(--line-strong);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--ink) 6%, transparent);
+  background: #efeee9;
+  box-shadow: none;
 }
 
 .note-card-top {
@@ -721,10 +942,10 @@ textarea {
 
 .note-card h2 {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
   overflow-wrap: break-word;
   min-width: 0;
 }
@@ -732,7 +953,7 @@ textarea {
 .note-preview {
   margin: 0;
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -748,6 +969,7 @@ textarea {
   color: var(--muted);
   font-size: 0.82rem;
   margin: 0.4rem 0 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .tag {
@@ -755,9 +977,7 @@ textarea {
   align-items: center;
   font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  padding: 0.12rem 0.4rem;
+  padding: 0.15rem 0.45rem;
   border-radius: var(--radius-sm);
   background: var(--info-soft);
   color: var(--ink-soft);
@@ -765,7 +985,7 @@ textarea {
 
 .tag-owner {
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-hover);
 }
 
 .tag-shared {
@@ -775,8 +995,8 @@ textarea {
 
 .empty {
   border: 1px dashed var(--line-strong);
-  border-radius: var(--radius);
-  padding: 2.6rem 1.4rem;
+  border-radius: 12px;
+  padding: 2.8rem 1.4rem;
   text-align: center;
   background: var(--surface);
   display: grid;
@@ -785,24 +1005,26 @@ textarea {
 }
 
 .empty h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .empty p {
   margin: 0 0 0.35rem;
-  max-width: 34ch;
+  max-width: 36ch;
 }
 
 .skeleton-list {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .skeleton-row {
-  height: 11.5rem;
-  border-radius: var(--radius);
+  height: 12rem;
+  border-radius: 12px;
   border: 1px solid var(--line);
   background: linear-gradient(90deg, var(--paper-deep), var(--surface), var(--paper-deep));
   background-size: 200% 100%;
@@ -818,9 +1040,9 @@ textarea {
 
 .back-link {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  padding: 0.3rem 0.4rem;
+  padding: 0.35rem 0.45rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: color var(--ease), background var(--ease);
@@ -843,31 +1065,16 @@ textarea {
 
 .editor-pane {
   position: relative;
-  padding: 1.5rem clamp(1.1rem, 3vw, 2rem) 1.2rem;
+  padding: 1.5rem clamp(1.1rem, 3vw, 2.5rem) 1.2rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   border-right: 1px solid var(--line);
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0,
-      transparent 27px,
-      color-mix(in srgb, var(--line) 32%, transparent) 27px,
-      color-mix(in srgb, var(--line) 32%, transparent) 28px
-    ),
-    var(--surface);
+  background: var(--surface);
 }
 
 .editor-pane::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: clamp(1.1rem, 3vw, 2rem);
-  width: 1px;
-  background: color-mix(in srgb, var(--margin) 38%, transparent);
-  pointer-events: none;
+  display: none;
 }
 
 .title-input {
@@ -875,15 +1082,16 @@ textarea {
   border: 1px solid transparent;
   background: transparent;
   color: var(--ink);
-  font-family: var(--font-display);
-  font-size: clamp(1.65rem, 2.6vw, 2.15rem);
+  font-family: var(--font-body);
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
   font-weight: 700;
   outline: none;
   border-radius: var(--radius-sm);
-  padding: 0.2rem 0.35rem 0.2rem 1.1rem;
+  padding: 0.2rem 0.35rem 0.2rem 0.5rem;
   margin: 0;
   position: relative;
   z-index: 1;
+  letter-spacing: -0.025em;
 }
 
 .content-input {
@@ -895,10 +1103,10 @@ textarea {
   background: transparent;
   color: var(--ink);
   outline: none;
-  font-size: 1.02rem;
-  line-height: 1.75;
+  font-size: 1rem;
+  line-height: 1.7;
   border-radius: var(--radius-sm);
-  padding: 0.2rem 0.35rem 0.2rem 1.1rem;
+  padding: 0.2rem 0.35rem 0.2rem 0.5rem;
   margin: 0;
   position: relative;
   z-index: 1;
@@ -918,8 +1126,8 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.35rem 0.35rem 1.1rem;
+  gap: 0.3rem;
+  padding: 0.25rem 0.35rem;
 }
 
 .toolbar-group {
@@ -931,17 +1139,18 @@ textarea {
   background: var(--surface);
   color: var(--ink-soft);
   border-radius: var(--radius-sm);
-  padding: 0.35rem 0.65rem;
+  padding: 0.4rem 0.7rem;
   min-height: 2.5rem;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: background var(--ease), border-color var(--ease), color var(--ease);
 }
 
 .toolbar-btn:hover {
-  background: var(--paper-deep);
+  background: var(--info-soft);
   color: var(--ink);
+  border-color: var(--line-strong);
 }
 
 .toolbar-btn:focus-visible {
@@ -1001,7 +1210,7 @@ textarea {
 
 .rich-content p {
   margin: 0;
-  min-height: 1.75em;
+  min-height: 1.7em;
 }
 
 .space-embed {
@@ -1028,7 +1237,7 @@ textarea {
 
 .space-embed-image figcaption {
   padding: 0.45rem 0.7rem;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: var(--muted);
   border-top: 1px solid var(--line);
 }
@@ -1053,14 +1262,14 @@ textarea {
 }
 
 .space-embed-doc a:hover {
-  background: var(--paper-deep);
+  background: var(--color-accent-soft);
 }
 
 .embed-doc-kind {
   flex-shrink: 0;
   font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent);
+  font-weight: 700;
+  color: var(--accent-hover);
   background: var(--accent-soft);
   border-radius: var(--radius-sm);
   padding: 0.2rem 0.45rem;
@@ -1082,7 +1291,7 @@ textarea {
 
 .rich-content mark,
 .note-mark {
-  background: color-mix(in srgb, var(--warn-soft) 80%, #ffe566);
+  background: color-mix(in srgb, var(--warn-soft) 70%, #fdba74);
   color: inherit;
   padding: 0.05em 0.15em;
   border-radius: 3px;
@@ -1099,7 +1308,7 @@ textarea {
 .note-check input {
   width: 1rem;
   height: 1rem;
-  accent-color: var(--accent);
+  accent-color: var(--color-accent);
   cursor: pointer;
 }
 
@@ -1120,10 +1329,10 @@ textarea {
   font-size: 0.82rem;
   font-weight: 400;
   color: var(--muted);
-  opacity: 0.42;
-  filter: blur(0.15px);
+  opacity: 0.55;
   letter-spacing: 0.01em;
   user-select: none;
+  font-variant-numeric: tabular-nums;
 }
 
 .editor-footer {
@@ -1131,7 +1340,7 @@ textarea {
   justify-content: space-between;
   align-items: center;
   gap: var(--gap);
-  padding: 0.5rem 0 0 1.1rem;
+  padding: 0.55rem 0 0;
   border-top: 1px solid var(--line);
   position: relative;
   z-index: 1;
@@ -1140,11 +1349,10 @@ textarea {
 
 .share-pane {
   padding: 1.25rem 1.15rem 2rem;
-  background: var(--paper-deep);
+  background: var(--paper);
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
-  border-left: none;
 }
 
 .share-pane-head h2,
@@ -1153,9 +1361,10 @@ textarea {
 }
 
 .share-pane-head h2 {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  letter-spacing: -0.02em;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 .share-pane-head p {
@@ -1165,10 +1374,8 @@ textarea {
 .collab-section h3,
 .file-panel-head h3 {
   font-family: var(--font-body);
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
   color: var(--muted);
   margin-bottom: 0.5rem;
 }
@@ -1235,7 +1442,7 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 500;
 }
 
@@ -1259,9 +1466,7 @@ textarea {
   gap: 0.65rem;
   padding: 0.7rem 0;
   border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  background: transparent;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
 }
 
 .collab-email {
@@ -1289,12 +1494,10 @@ textarea {
 .activity-item {
   padding: 0.55rem 0;
   border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  background: transparent;
 }
 
 .activity-main {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   line-height: 1.4;
 }
 
@@ -1316,13 +1519,13 @@ textarea {
 
 .lines-added {
   font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--accent);
+  font-weight: 700;
+  color: var(--accent-hover);
 }
 
 .lines-removed {
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--danger);
 }
 
@@ -1339,8 +1542,8 @@ textarea {
 
 .save-pill[data-status='saved'],
 .save-pill[data-status='synced'] {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  color: var(--accent-hover);
+  border-color: color-mix(in srgb, var(--color-accent) 35%, var(--line));
   background: var(--accent-soft);
 }
 
@@ -1383,15 +1586,6 @@ textarea {
   }
 }
 
-@keyframes drift {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(-4%, -3%, 0) scale(1.05);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1399,6 +1593,13 @@ textarea {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@media (min-width: 961px) and (max-width: 1100px) {
+  .note-grid,
+  .skeleton-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -1412,9 +1613,16 @@ textarea {
     padding-bottom: 1.5rem;
   }
 
+  .home-stage-glow {
+    width: min(90vw, 28rem);
+    height: min(90vw, 28rem);
+    right: -30%;
+    bottom: -48%;
+  }
+
   .home .brand-hero {
     max-width: 10ch;
-    font-size: clamp(2.8rem, 12vw, 4rem);
+    font-size: clamp(2.6rem, 11vw, 4rem);
   }
 
   .home-preview {
@@ -1424,6 +1632,8 @@ textarea {
   .home-auth {
     padding-top: 0.5rem;
     align-items: flex-start;
+    border-left: none;
+    border-top: 1px solid var(--line);
   }
 
   .auth-form {
@@ -1432,6 +1642,7 @@ textarea {
 
   .editor-layout {
     grid-template-columns: 1fr;
+    min-height: auto;
   }
 
   .share-pane {
@@ -1441,10 +1652,12 @@ textarea {
   .editor-layout.share-open .share-pane {
     display: flex;
     border-top: 1px solid var(--line);
+    min-height: 50vh;
   }
 
   .editor-pane {
     border-right: none;
+    min-height: 70vh;
   }
 
   .share-toggle {
@@ -1456,8 +1669,36 @@ textarea {
     align-items: stretch;
   }
 
+  .spaces-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .spaces-create {
+    width: 100%;
+  }
+
+  .spaces-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .spaces-filters {
+    width: 100%;
+  }
+
+  .spaces-filter {
+    flex: 1;
+  }
+
+  .spaces-search {
+    max-width: none;
+    width: 100%;
+  }
+
   .search-field input {
     max-width: none;
+    width: 100%;
   }
 
   .user-chip {
@@ -1468,6 +1709,28 @@ textarea {
   .skeleton-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .editor-nav {
+    flex-wrap: wrap;
+  }
+
+  .file-item {
+    flex-wrap: wrap;
+  }
+
+  .file-open {
+    width: 100%;
+  }
+
+  .collab-item {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .editor-footer {
+    flex-wrap: wrap;
+    padding-left: 0;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1475,22 +1738,94 @@ textarea {
   .skeleton-list {
     grid-template-columns: 1fr;
   }
+
+  .spaces-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .spaces-stat {
+    padding: 0.85rem 0.75rem;
+  }
+
+  .spaces-stat-value {
+    font-size: 1.35rem;
+  }
+
+  .spaces-stat-label {
+    font-size: 0.78rem;
+  }
+
+  .app-bar {
+    flex-wrap: wrap;
+    row-gap: 0.55rem;
+  }
+
+  .app-bar-left,
+  .app-bar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .editor-shell .app-bar-left {
+    gap: 0.5rem;
+  }
+
+  .back-link {
+    font-size: 0.85rem;
+  }
+
+  .line-blame {
+    display: none;
+  }
+
+  .title-input,
+  .content-input,
+  .note-toolbar {
+    padding-left: 0.35rem;
+  }
+
+  .editor-pane::before {
+    display: none;
+  }
+
+  .modal-card {
+    width: min(100%, 24rem);
+    max-height: min(90vh, 40rem);
+    overflow: auto;
+  }
 }
 
 @media (max-width: 560px) {
-  .app-bar {
-    padding: 0.7rem 0.9rem;
+  .spaces-stats {
+    grid-template-columns: 1fr;
   }
 
-  .app-main,
+  .app-bar {
+    padding: 0.7rem 0.9rem;
+    padding-top: max(0.7rem, env(safe-area-inset-top));
+  }
+
+  .brand-text {
+    font-size: 1.15rem;
+  }
+
+  .btn-signout-full {
+    display: none;
+  }
+
+  .btn-signout-short {
+    display: inline;
+  }
+
+  .app-main {
+    padding: 1.25rem 1rem 3.5rem;
+    padding-bottom: max(3.5rem, calc(2rem + env(safe-area-inset-bottom)));
+  }
+
   .editor-pane,
   .share-pane {
     padding-left: 1rem;
     padding-right: 1rem;
-  }
-
-  .editor-pane::before {
-    left: 1rem;
   }
 
   .home-auth,
@@ -1501,12 +1836,53 @@ textarea {
 
   .auth-form {
     padding: 1.15rem;
+    width: 100%;
+  }
+
+  .spaces-hero {
+    padding: 1.25rem 1rem;
+  }
+
+  .spaces-hero h1 {
+    font-size: clamp(1.85rem, 9vw, 2.4rem);
+  }
+
+  .spaces-filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .note-card {
+    min-height: 11rem;
+  }
+
+  .note-toolbar {
+    gap: 0.3rem;
+  }
+
+  .toolbar-btn {
+    flex: 1 1 auto;
+    min-width: calc(50% - 0.3rem);
+  }
+
+  .rich-content,
+  .content-input {
+    min-height: 42vh;
+    font-size: 1rem;
+  }
+
+  .page-center {
+    padding: 1rem;
   }
 }
 
-@media (min-width: 961px) and (max-width: 1100px) {
-  .note-grid,
-  .skeleton-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+@media (max-width: 380px) {
+  .home .brand-hero {
+    font-size: clamp(2.2rem, 14vw, 2.8rem);
+  }
+
+  .spaces-filter {
+    padding: 0.5rem 0.35rem;
+    font-size: 0.85rem;
   }
 }

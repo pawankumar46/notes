@@ -5,7 +5,12 @@ import FilePanel from '../components/FilePanel'
 import RichEditor from '../components/RichEditor'
 import { useAuth } from '../context/AuthContext'
 import { plainTextFromHtml } from '../lib/editor'
-import { listSpaceFiles, refreshContentEmbeds, stripEmbedsForFile } from '../lib/files'
+import {
+  listSpaceFiles,
+  refreshContentEmbeds,
+  stripEmbedsForFile,
+  stripOrphanEmbeds,
+} from '../lib/files'
 import { supabase } from '../lib/supabase'
 import {
   extractMentionEmails,
@@ -59,22 +64,32 @@ export default function SpaceEditor() {
         listCollaborators(id),
         listSpaceFiles(id),
       ])
-      const hydrated = await refreshContentEmbeds(n.content || '')
+      const { html: cleaned, changed } = stripOrphanEmbeds(n.content || '', f)
+      const hydrated = await refreshContentEmbeds(cleaned)
+      const authors = Array.isArray(n.line_authors) ? n.line_authors : []
       setNote(n)
       setTitle(n.title || '')
       setContent(hydrated)
-      setLineAuthors(Array.isArray(n.line_authors) ? n.line_authors : [])
+      setLineAuthors(authors)
       lastSaved.current = {
         title: n.title || '',
         content: hydrated,
-        lineAuthors: Array.isArray(n.line_authors) ? n.line_authors : [],
+        lineAuthors: authors,
       }
       setCollaborators(c)
       setFiles(f)
+      if (changed) {
+        await updateNote(id, {
+          title: n.title || '',
+          content: hydrated,
+          updatedBy: user.id,
+          lineAuthors: authors,
+        })
+      }
     } catch (err) {
       setError(err.message)
     }
-  }, [id])
+  }, [id, user.id])
 
   useEffect(() => {
     load()
@@ -405,11 +420,8 @@ export default function SpaceEditor() {
               editorRef.current?.insertHtml(embedHtml)
             }}
             onRemoved={(file) => {
-              if (editorRef.current) {
-                editorRef.current.removeFileEmbeds(file.id)
-                return
-              }
-              const nextContent = stripEmbedsForFile(content, file.id)
+              const fromEditor = editorRef.current?.removeFileEmbeds(file.id)
+              const nextContent = stripEmbedsForFile(fromEditor || content, file.id)
               setContent(nextContent)
               if (saveTimer.current) clearTimeout(saveTimer.current)
               persist(title, nextContent, lineAuthors, { notifyChange: false })

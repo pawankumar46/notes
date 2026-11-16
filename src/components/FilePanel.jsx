@@ -4,17 +4,11 @@ import {
   ACCEPT_ATTR,
   buildEmbedHtml,
   deleteSpaceFile,
+  fileTypeLabel,
   formatBytes,
   getSpaceFileUrl,
   uploadSpaceFile,
 } from '../lib/files'
-
-function typeLabel(type) {
-  if (type === 'image') return 'Photo'
-  if (type === 'pdf') return 'PDF'
-  if (type === 'excel') return 'Spreadsheet'
-  return 'File'
-}
 
 export default function FilePanel({
   spaceId,
@@ -46,13 +40,13 @@ export default function FilePanel({
           userId,
           raw,
         )
-        const url = await getSpaceFileUrl(record.storage_path)
+        const url = await getSpaceFileUrl(record)
         setFiles((prev) => [record, ...prev.filter((f) => f.id !== record.id)])
         onInserted?.(buildEmbedHtml(record, url), record)
 
         if (compressedSize < originalSize) {
           setMessage(
-            `Added ${record.file_name} to the writing area (${formatBytes(originalSize)} → ${formatBytes(compressedSize)})`,
+            `Compressed and added ${record.file_name} (${formatBytes(originalSize)} → ${formatBytes(compressedSize)})`,
           )
         } else {
           setMessage(`Added ${record.file_name} to the writing area`)
@@ -68,7 +62,7 @@ export default function FilePanel({
 
   async function openFile(file) {
     try {
-      const url = await getSpaceFileUrl(file.storage_path)
+      const url = await getSpaceFileUrl(file)
       window.open(url, '_blank', 'noopener,noreferrer')
     } catch (err) {
       setError(err.message)
@@ -77,7 +71,7 @@ export default function FilePanel({
 
   async function insertAgain(file) {
     try {
-      const url = await getSpaceFileUrl(file.storage_path)
+      const url = await getSpaceFileUrl(file)
       onInserted?.(buildEmbedHtml(file, url), file)
       setMessage(`Inserted ${file.file_name} into the writing area`)
     } catch (err) {
@@ -113,7 +107,9 @@ export default function FilePanel({
     <div className="file-panel">
       <div className="file-panel-head">
         <h3>Files</h3>
-        <p className="muted small">Uploads appear in the writing area. Photos are compressed.</p>
+        <p className="muted small">
+          Any file type. Photos are resized; other files are gzip-compressed when it saves space.
+        </p>
       </div>
 
       {canUpload && (
@@ -128,7 +124,7 @@ export default function FilePanel({
             onChange={(e) => handleFiles(e.target.files)}
           />
           <label htmlFor="space-file-input" className="btn btn-secondary btn-block file-upload-btn">
-            {busy ? 'Uploading…' : 'Upload into writing area'}
+            {busy ? 'Compressing & uploading…' : 'Upload into writing area'}
           </label>
         </div>
       )}
@@ -151,7 +147,7 @@ export default function FilePanel({
           {files.map((file) => (
             <li key={file.id} className="file-item">
               <button type="button" className="file-open" onClick={() => openFile(file)}>
-                <span className="tag">{typeLabel(file.file_type)}</span>
+                <span className="tag">{fileTypeLabel(file.file_type)}</span>
                 <span className="file-name">{file.file_name}</span>
                 <span className="meta">{formatBytes(file.file_size)}</span>
               </button>

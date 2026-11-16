@@ -1,5 +1,5 @@
 {
-  "name": "shareboard",
+  "name": "notefolio",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,6 +12,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
     "browser-image-compression": "^2.0.2",
+    "framer-motion": "^14.14.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.4"

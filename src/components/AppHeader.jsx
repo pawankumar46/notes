@@ -13,7 +13,8 @@ export default function AppHeader({ leading, actions }) {
     <header className="app-bar">
       <div className="app-bar-left">
         <Link to="/app" className="brand">
-          Shareboard
+          <img className="brand-mark" src="/logo.svg" alt="" width="20" height="20" />
+          <span className="brand-text">Notefolio</span>
         </Link>
         {leading}
       </div>
@@ -22,8 +23,9 @@ export default function AppHeader({ leading, actions }) {
         <span className="user-chip" title={label}>
           {label}
         </span>
-        <button type="button" className="btn btn-ghost" onClick={() => signOut()}>
-          Sign out
+        <button type="button" className="btn btn-ghost btn-signout" onClick={() => signOut()}>
+          <span className="btn-signout-full">Sign out</span>
+          <span className="btn-signout-short">Out</span>
         </button>
       </div>
     </header>
